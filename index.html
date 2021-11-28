@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- google fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@700&display=swap" rel="stylesheet">
+
+    <title>Document</title>
+</head>
+
+<body>
+    <script src="https://cdn.socket.io/4.4.0/socket.io.min.js"
+        integrity="sha384-1fOn6VtTq3PWwfsOrk45LnYcGosJwzMHv+Xh/Jx5303FVOXzEnw0EpLv30mtjmlj" crossorigin="anonymous">
+        </script>
+
+    <div id='last-played-card-container'>
+    </div>
+
+    <div id='card-container'>
+        <div class="card" id="clickme" style="background-color: deepskyblue;">
+            <div class="card-inner">🌱</div>
+        </div>
+
+        <div class="card" id="clickme" style="background-color: rgb(62, 212, 48);">
+            <div class="card-inner">🌱</div>
+        </div>
+    </div>
+
+    <script>
+        var socket = io();
+
+        document.getElementById("clickme").addEventListener('click', function (e) {
+            console.log('click');
+            e.preventDefault();
+            socket.emit('click', { id: socket.id, cardClicked: 0 });
+        });
+
+        class Card {
+            constructor(number, color) {
+                this.number = number;
+                this.color = color;
+            }
+        }
+
+        var cards = [];
+        var lastPlayed = new Card(-1, 4);
+
+        function getCards() {
+            console.log('getCards() called');
+            socket.emit('get_cards', socket.id);
+        }
+
+        socket.on("receive_cards", (msg) => {
+            console.log(msg);
+            cards = msg[ 'cards' ];
+            if (msg[ 'lastPlayed' ].number == undefined)
+                lastPlayed = new Card('hi 😊', 4);
+            else
+                lastPlayed = msg[ 'lastPlayed' ];
+            drawCards();
+        });
+
+        // rendering
+
+        function lookupColor(color) {
+            switch (color) {
+                case 0:
+                    return 'deepskyblue';
+                    break;
+                case 1:
+                    return 'rgb(62, 212, 48)';
+                    break;
+                case 2:
+                    return 'rgb(236, 33, 77)';
+                    break;
+                case 3:
+                    return 'rgb(252, 214, 0)';
+                    break;
+                case 4:
+                    return 'rgb(0, 0, 0)';
+                    break;
+            }
+        }
+
+        function drawCards() {
+            // the rotation angle will be between + and - this value
+            let rotationSpread = 20;
+            // random rotation of last played card
+            var lastSpread = 30;
+
+            console.log('drawCards() called');
+            var newContainer = document.createElement('div');
+            var cardContainer = document.getElementById("card-container");
+            newContainer.id = 'card-container';
+
+            for (let i = 0; i < cards.length; i++) {
+                var card_div = document.createElement("div");
+                card_div.className = 'card playable';
+                card_div.id = 'card' + i;
+                card_div.style.backgroundColor = lookupColor(cards[ i ].color);
+                card_div.style.setProperty('--rot', (i + 0.5 - cards.length / 2.0) * 2 * rotationSpread / (cards.length - 1) + 'deg');
+                card_div.style.setProperty('--arc-translate', Math.abs(i - cards.length / 2.0) * 6 + 'px');
+
+                var card_inner_div = document.createElement("div");
+                card_inner_div.className = 'card-inner';
+                card_inner_div.innerHTML = cards[ i ].number;
+
+                card_div.appendChild(card_inner_div);
+                newContainer.appendChild(card_div);
+
+                card_div.addEventListener('click', function (e) {
+                    console.log('clicked card', i);
+                    e.preventDefault();
+                    socket.emit('click', { id: socket.id, cardClicked: i });
+                });
+            }
+            cardContainer.replaceWith(newContainer);
+
+            // last played card
+            var newLastPlayedContainer = document.getElementById("last-played-card-container");
+            var lastPlayedContainer = document.getElementById("last-played-card-container");
+            newLastPlayedContainer.id = "last-played-card-container";
+
+            var last_card_div = document.createElement("div");
+            last_card_div.className = 'card';
+            last_card_div.style.backgroundColor = lookupColor(lastPlayed.color);
+            last_card_div.style.setProperty('--rot', Math.random() * (2 * lastSpread) - lastSpread + 'deg');
+            last_card_div.style.position = 'absolute';
+
+            var last_card_inner_div = document.createElement("div");
+            last_card_inner_div.className = 'card-inner';
+            last_card_inner_div.innerHTML = lastPlayed.number;
+
+            last_card_div.appendChild(last_card_inner_div);
+            newLastPlayedContainer.appendChild(last_card_div);
+            lastPlayedContainer.replaceWith(newLastPlayedContainer);
+        }
+
+        function check() {
+            if (socket.id == undefined) {
+                console.log('yes');
+                console.log(socket.id);
+                return setTimeout(check, 10);
+            }
+            console.log('now');
+            getCards();
+        }
+        check();
+
+    </script>
+</body>
+
+</html>

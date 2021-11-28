@@ -1,0 +1,66 @@
+.card {
+    /* background-color: rgb(98, 158, 103); */
+    /* background-color: rgb(221, 221, 221); */
+    border         : solid white 8px;
+    border-radius  : 15px;
+    filter         : drop-shadow(0 0 0.15rem rgba(0, 0, 0, 0.6)) brightness(100%);
+    width          : 110px;
+    height         : 180px;
+    transition     : all 0.13s ease-out;
+    flex-shrink    : 0;
+    margin-left    : -60px;
+    --scale        : 1;
+    --translate    : 0px;
+    --rot          : 0;
+    --arc-translate: 0px;
+    transform      : scale(var(--scale)) translate(0, calc(var(--translate) + var(--arc-translate))) rotate(var(--rot));
+
+    /* padding   : 20px;
+    box-sizing   : padding-box; */
+}
+
+.playable:hover {
+    filter        : drop-shadow(0 0.3rem 0.7rem rgba(0, 0, 0, 0.3)) brightness(100%);
+    /* --rot      : 10deg; */
+    --scale       : 1.05;
+    --translate   : -20px;
+}
+
+.playable:active {
+    --translate: -30px;
+    filter     : drop-shadow(0 0.3rem 0.7rem rgba(0, 0, 0, 0.3)) brightness(125%);
+}
+
+.card-inner {
+    padding    : 15px;
+    font-size  : 40px;
+    font-family: 'Lora', serif;
+    color      : white;
+    text-shadow: -3px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    user-select      : none;
+    /* paint-order   : stroke fill; */
+}
+
+#card-container {
+    display        : flex;
+    column-gap     : 10px;
+    justify-content: center;
+    align-items    : center;
+    margin-top     : auto;
+}
+
+#last-played-card-container {
+    margin: auto;
+}
+
+body {
+    background-color: rgb(228, 228, 228);
+    display         : flex;
+    flex-direction  : column;
+    height          : 100vh;
+    margin          : 0;
+    overflow        : hidden;
+}
