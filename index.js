@@ -9,7 +9,7 @@ var app = express();
 var server = http.Server(app);
 var io = socketIO(server);
 
-app.set('port', 8080);
+app.set('port', process.env.PORT || 8080);
 app.use(express.static(__dirname + '/static'));
 // app.use(express.static('public'));
 // app.use(express.static('static'));
