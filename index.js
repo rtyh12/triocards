@@ -9,7 +9,8 @@ var app = express();
 var server = http.Server(app);
 var io = socketIO(server);
 
-app.set('port', process.env.PORT || 8080);
+port = process.env.PORT || 8080;
+app.set('port', port);
 app.use(express.static(__dirname + '/static'));
 // app.use(express.static('public'));
 // app.use(express.static('static'));
@@ -20,8 +21,8 @@ app.get('/', function (request, response) {
 });
 
 // Starts the server.
-server.listen(8080, function () {
-    console.log('Starting server on port 8080');
+server.listen(port, function () {
+    console.log('Starting server on port ' + port);
 });
 
 function getRandomInt(max) {
