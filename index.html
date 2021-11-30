@@ -59,12 +59,25 @@
 
         socket.on("receive_cards", (msg) => {
             console.log(msg);
-            cards = msg[ 'cards' ];
+            new_cards = msg[ 'cards' ];
+
             if (msg[ 'lastPlayed' ].number == undefined)
-                lastPlayed = new Card('hi 😊', 4);
+                new_lastPlayed = new Card('hi 😊', 4);
             else
-                lastPlayed = msg[ 'lastPlayed' ];
-            drawCards();
+                new_lastPlayed = msg[ 'lastPlayed' ];
+
+            if (JSON.stringify(cards.sort()) !== JSON.stringify(new_cards.sort())) {
+                cards = new_cards;
+                drawCards();
+            }
+
+            if (new_lastPlayed != lastPlayed) {
+                lastPlayed = new_lastPlayed;
+                drawLastCard();
+            }
+
+            cards = new_cards;
+            lastPlayed = new_lastPlayed;
         });
 
         // rendering
@@ -92,8 +105,6 @@
         function drawCards() {
             // the rotation angle will be between + and - this value
             let rotationSpread = 20;
-            // random rotation of last played card
-            var lastSpread = 30;
 
             console.log('drawCards() called');
             var newContainer = document.createElement('div');
@@ -122,6 +133,11 @@
                 });
             }
             cardContainer.replaceWith(newContainer);
+        }
+
+        function drawLastCard() {
+            // random rotation of last played card
+            var lastSpread = 30;
 
             // last played card
             var newLastPlayedContainer = document.getElementById("last-played-card-container");
