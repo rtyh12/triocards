@@ -13,7 +13,9 @@
     --translate    : 0px;
     --rot          : 0;
     --arc-translate: 0px;
-    transform      : scale(var(--scale)) translate(0, calc(var(--translate) + var(--arc-translate))) rotate(var(--rot));
+    --rand_x       : 0px;
+    --rand_y       : 0px;
+    transform      : scale(var(--scale)) translate(calc(0px + var(--rand_x)), calc(var(--translate) + var(--arc-translate) + var(--rand_y))) rotate(var(--rot));
 
     /* padding   : 20px;
     box-sizing   : padding-box; */

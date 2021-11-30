@@ -16,6 +16,7 @@
 </head>
 
 <body>
+    <!-- TODO move scripts into head and use async/defer -->
     <script src="https://cdn.socket.io/4.4.0/socket.io.min.js"
         integrity="sha384-1fOn6VtTq3PWwfsOrk45LnYcGosJwzMHv+Xh/Jx5303FVOXzEnw0EpLv30mtjmlj" crossorigin="anonymous">
         </script>
@@ -49,6 +50,18 @@
             }
         }
 
+        function compareCards(a, b) {
+            if (a.number != b.number) {
+                return a.number - b.number;
+            }
+            else if (a.color != b.color) {
+                return a.color - b.color;
+            }
+            else {
+                return 0;
+            }
+        }
+
         var cards = [];
         var lastPlayed = new Card(-1, 4);
 
@@ -66,7 +79,7 @@
             else
                 new_lastPlayed = msg[ 'lastPlayed' ];
 
-            if (JSON.stringify(cards.sort()) !== JSON.stringify(new_cards.sort())) {
+            if (JSON.stringify(cards.slice().sort(compareCards)) !== JSON.stringify(new_cards.slice().sort(compareCards))) {
                 cards = new_cards;
                 drawCards();
             }
@@ -111,17 +124,19 @@
             var cardContainer = document.getElementById("card-container");
             newContainer.id = 'card-container';
 
-            for (let i = 0; i < cards.length; i++) {
+            sortedCards = cards.sort(compareCards);
+            console.log('sorted', sortedCards);
+            for (let i = 0; i < sortedCards.length; i++) {
                 var card_div = document.createElement("div");
                 card_div.className = 'card playable';
                 card_div.id = 'card' + i;
-                card_div.style.backgroundColor = lookupColor(cards[ i ].color);
-                card_div.style.setProperty('--rot', (i + 0.5 - cards.length / 2.0) * 2 * rotationSpread / (cards.length - 1) + 'deg');
-                card_div.style.setProperty('--arc-translate', Math.abs(i - cards.length / 2.0) * 6 + 'px');
+                card_div.style.backgroundColor = lookupColor(sortedCards[ i ].color);
+                card_div.style.setProperty('--rot', (i + 0.5 - sortedCards.length / 2.0) * 2 * rotationSpread / (sortedCards.length - 1) + 'deg');
+                card_div.style.setProperty('--arc-translate', Math.abs(i - sortedCards.length / 2.0) * 6 + 'px');
 
                 var card_inner_div = document.createElement("div");
                 card_inner_div.className = 'card-inner';
-                card_inner_div.innerHTML = cards[ i ].number;
+                card_inner_div.innerHTML = sortedCards[ i ].number;
 
                 card_div.appendChild(card_inner_div);
                 newContainer.appendChild(card_div);
@@ -137,7 +152,9 @@
 
         function drawLastCard() {
             // random rotation of last played card
-            var lastSpread = 30;
+            var lastSpread = 50;
+            var x_spread = 60;
+            var y_spread = 60;
 
             // last played card
             var newLastPlayedContainer = document.getElementById("last-played-card-container");
@@ -148,6 +165,8 @@
             last_card_div.className = 'card';
             last_card_div.style.backgroundColor = lookupColor(lastPlayed.color);
             last_card_div.style.setProperty('--rot', Math.random() * (2 * lastSpread) - lastSpread + 'deg');
+            last_card_div.style.setProperty('--rand_x', Math.random() * x_spread - (1 / 2) * x_spread + 'px');
+            last_card_div.style.setProperty('--rand_y', Math.random() * y_spread - (1 / 2) * y_spread + 'px');
             last_card_div.style.position = 'absolute';
 
             var last_card_inner_div = document.createElement("div");
