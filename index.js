@@ -64,7 +64,7 @@ class Player {
         if (this.cards.length == 0) {
             this.deal_random(8);
         }
-        game.lastPlayed = removed[0];
+        game.lastPlayed = removed[ 0 ];
         return removed;
     }
 }
@@ -72,21 +72,21 @@ class Player {
 class Game {
     constructor() {
         this.player_count = 0;
-        this.players = [];
-        this.starting_card_number = 5;
+        this.players = new Map;
+        this.starting_card_number = 8;
 
         this.lastPlayed = new Card();
     }
 
-    player_join() {
+    player_join(name, id) {
         let player = new Player();
         player.deal_random(this.starting_card_number);
-        this.players.push(player);
+        this.players.set(id, player);
     }
 }
 
-var player = new Player();
-player.deal_random(8);
+// var player = new Player();
+// player.deal_random(8);
 
 var game = new Game();
 
@@ -95,22 +95,49 @@ var game = new Game();
 
 function send_state(game, id) {
     console.log(game.lastPlayed);
-    io.to(id).emit('receive_cards', {
-        'cards': player.cards,
-        'lastPlayed': game.lastPlayed
-    });
+
+    try {
+        io.to(id).emit('receive_cards', {
+            'cards': game.players.get(id).cards,
+            'lastPlayed': game.lastPlayed
+        });
+    }
+    catch (e) {
+        console.log('Exception in send_state:\n', e);
+        io.to(id).emit('receive_cards', {
+            'cards': [],
+            'lastPlayed': new Card()
+        });
+    }
 }
 
 io.on('connection', (socket) => {
     socket.on('click', (msg) => {
-        console.log('id', msg['id'], 'clicked card', msg['cardClicked']);
-        player.playCard(msg['cardClicked'], game);
-        send_state(game, id);
+        id = msg[ 'id' ];
+        console.log('id', id, 'clicked card', msg[ 'cardClicked' ]);
+        try {
+            game.players.get(id).playCard(msg[ 'cardClicked' ], game);
+
+            game.players.forEach((value, key, map) => {
+                send_state(game, key);
+            });
+        }
+        catch (e) {
+            console.log(e);
+        }
     });
 
     socket.on('get_cards', (msg) => {
         id = msg;
         console.log('get_cards received from ' + id);
+        send_state(game, id);
+    });
+
+    socket.on('join_game', (msg) => {
+        id = msg;
+        console.log(id + ' joins');
+        game.player_join('noname', id);
+        console.log(game.players);
         send_state(game, id);
     });
 });

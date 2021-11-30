@@ -150,7 +150,7 @@
                 return setTimeout(check, 10);
             }
             console.log('now');
-            getCards();
+            socket.emit('join_game', socket.id);
         }
         check();
 
