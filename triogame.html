@@ -14,6 +14,9 @@
         href="https://fonts.googleapis.com/css2?family=Lato&family=Lora:wght@700&family=Outfit:wght@200;300&family=Source+Code+Pro:wght@300&display=swap"
         rel="stylesheet">
 
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"
+        integrity="sha256-0H3Nuz3aug3afVbUlsu12Puxva3CP4EhJtPExqs54Vg=" crossorigin="anonymous"></script>
+
     <title>Document</title>
 </head>
 
@@ -152,19 +155,18 @@
             var cardContainer = document.getElementById("card-container");
             newContainer.id = 'card-container';
 
-            sortedCards = cards.sort(compareCards);
-            console.log('sorted', sortedCards);
-            for (let i = 0; i < sortedCards.length; i++) {
+            console.log('sorted', cards);
+            for (let i = 0; i < cards.length; i++) {
                 var card_div = document.createElement("div");
                 card_div.className = 'card playable';
                 card_div.id = 'card' + i;
-                card_div.style.backgroundColor = lookupColor(sortedCards[i].color);
-                card_div.style.setProperty('--rot', (i + 0.5 - sortedCards.length / 2.0) * 2 * rotationSpread / (sortedCards.length - 1) + 'deg');
-                card_div.style.setProperty('--arc-translate', Math.abs(i - sortedCards.length / 2.0) * 6 + 'px');
+                card_div.style.backgroundColor = lookupColor(cards[i].color);
+                card_div.style.setProperty('--rot', (i + 0.5 - cards.length / 2.0) * 2 * rotationSpread / (cards.length - 1) + 'deg');
+                card_div.style.setProperty('--arc-translate', Math.abs(i - cards.length / 2.0) * 6 + 'px');
 
                 var card_inner_div = document.createElement("div");
                 card_inner_div.className = 'card-inner';
-                card_inner_div.innerHTML = sortedCards[i].number;
+                card_inner_div.innerHTML = cards[i].number;
 
                 card_div.appendChild(card_inner_div);
                 newContainer.appendChild(card_div);
@@ -210,19 +212,43 @@
             lastPlayedContainer.replaceWith(newLastPlayedContainer);
         }
 
-        // on page load, keep trying to connect until successful
+        // on page load, wait for socket to be established and then join
 
         function connect() {
-            if (socket.id == undefined) {
+            if (socket.id === undefined) {
                 return setTimeout(connect, 10);
             }
-            socket.emit('requestJoin', {
-                'session_id': socket.id,
-                'roomCode': roomCode,
+
+            // try to rejoin with values stored in cookies
+            // TODO if player is not afk, add a new socket id and accept both sessions (multiple tabs)
+            console.log('Trying to rejoin with data: player_id', Cookies.get('player_id'), 'and room code', Cookies.get('roomCode'));
+            socket.emit('requestRejoin', {
+                'player_id': Cookies.get('player_id'),
+                'roomCode': Cookies.get('roomCode'),
+                'session_id': socket.id
             }, (response) => {
-                console.log('Connection successful yey');
-                player_id = response['player_id'];
-                roomCode = response['roomCode'];
+                console.log('Rejoin approved:', response['approved']);
+                rejoinApproved = response['approved'];
+
+                if (rejoinApproved) {
+                    player_id = Cookies.get('player_id');
+                    roomCode = Cookies.get('roomCode');
+                }
+                else {
+                    console.log('hello');
+
+                    // if that didn't work, establish a new connection
+                    socket.emit('requestJoin', {
+                        'session_id': socket.id,
+                        'roomCode': roomCode,
+                    }, (response) => {
+                        console.log('Connection successful yey');
+                        player_id = response['player_id'];
+                        roomCode = response['roomCode'];
+                        Cookies.set('player_id', player_id);
+                        Cookies.set('roomCode', roomCode);
+                    });
+                }
             });
         }
         connect();

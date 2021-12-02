@@ -2,7 +2,9 @@
 var express = require('express');
 var http = require('http');
 var path = require('path');
+// const { exitCode } = require('process');
 var socketIO = require('socket.io');
+var assert = require('assert');
 const { setFlagsFromString } = require('v8');
 
 var app = express();
@@ -62,6 +64,18 @@ class Card {
     }
 }
 
+function compareCards(a, b) {
+    if (a.number != b.number) {
+        return a.number - b.number;
+    }
+    else if (a.color != b.color) {
+        return a.color - b.color;
+    }
+    else {
+        return 0;
+    }
+}
+
 class Player {
     constructor() {
         this.afk = false;
@@ -75,6 +89,8 @@ class Player {
             this.cards[i] = new Card();
             this.cards[i].init_random();
         }
+
+        this.cards.sort(compareCards);
     }
 
     playCard(num, game) {
@@ -86,6 +102,7 @@ class Player {
             this.deal_random(8);
         }
         game.lastPlayed = removed[0];
+        this.cards.sort(compareCards);
         return removed;
     }
 }
@@ -111,6 +128,14 @@ class Game {
         player.deal_random(this.starting_card_number);
         this.players.set(player_id, player);
     }
+
+    activePlayerCount() {
+        let count = 0;
+        for (const [key, player] of this.players)
+            if (!player.afk)
+                count++;
+        return count;
+    }
 }
 
 var games = new Map();
@@ -124,7 +149,7 @@ var sessionToRoom = new Map();
 // TODO change to callback using setTimeout
 setInterval(() => {
     games.forEach((game, key, map) => {
-        if (game.getAge() > pruneInactiveGamesAfter && game.players.size == 0) {
+        if (game.getAge() > pruneInactiveGamesAfter && game.activePlayerCount() == 0) {
             games.delete(key);
             console.log("Pruned room", key);
         }
@@ -189,6 +214,37 @@ io.on('connection', (socket) => {
         callback(games.has(roomCode));
     });
 
+    socket.on('requestRejoin', (data, callback) => {
+        console.log('Request rejoin', data);
+
+        if (data['roomCode'] === undefined ||
+            data['player_id'] === undefined) {
+            callback({ 'approved': false });
+            return;
+        }
+
+        roomCode = data['roomCode'].toUpperCase();
+        session_id = data['session_id'];
+        player_id = data['player_id'];
+
+        try {
+            console.log(games.get(roomCode));
+            console.log(games);
+            assert(games.get(roomCode).players.get(player_id).afk);
+
+            console.log(player_id, 'rejoined', roomCode);
+            games.get(roomCode).players.get(player_id).afk = false;
+            games.get(roomCode).players.get(player_id).session_id = data['session_id'];
+            callback({ 'approved': true });
+            sessionToRoom.set(session_id, roomCode);
+            sendState(roomCode, player_id);
+        }
+        catch (e) {
+            console.log(e);
+            callback({ 'approved': false });
+        }
+    });
+
     socket.on('requestJoin', (data, callback) => {
         roomCode = data['roomCode'].toUpperCase();
         session_id = data['session_id'];
@@ -250,8 +306,8 @@ io.on('connection', (socket) => {
 
             for (let [key, value] of game.players) {
                 if (value.session_id == socket.id) {
-                    console.log('Deleting player', game.players.get(key).player_id, 'from room', roomCode);
-                    game.players.delete(key);
+                    console.log('Player', game.players.get(key).player_id, 'from room', roomCode, 'went afk...');
+                    game.players.get(key).afk = true;
                 }
             }
 
