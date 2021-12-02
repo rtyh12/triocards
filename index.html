@@ -10,7 +10,10 @@
     <!-- google fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lora:wght@700&family=Merriweather&family=Source+Code+Pro:wght@300&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 
     <title>Document</title>
 </head>
@@ -21,173 +24,72 @@
         integrity="sha384-1fOn6VtTq3PWwfsOrk45LnYcGosJwzMHv+Xh/Jx5303FVOXzEnw0EpLv30mtjmlj" crossorigin="anonymous">
         </script>
 
-    <div id='last-played-card-container'>
+    <div id='room-container'>
+        <input type="text" id="name" name="name" placeholder="Enter your name" oninput="onNameInput()">
+        <br>
+        <br>
+        <div id='roomcode-container'>
+            <input type="text" id="roomcode" maxlength="4" name="roomcode" placeholder="Room code"
+                oninput="onRoomcodeInput()">
+            <a onclick="play();" id="play-button">
+                PLAY
+                <!-- <span class="material-icons-outlined" id='play-circle'>play_circle</span> -->
+            </a>
+        </div>
+        <br>
+        Or <a href="#" onclick="requestRoom();" id="requestRoom">create a new room</a>
     </div>
-
-    <div id='card-container'>
-        <div class="card" id="clickme" style="background-color: deepskyblue;">
-            <div class="card-inner">🌱</div>
-        </div>
-
-        <div class="card" id="clickme" style="background-color: rgb(62, 212, 48);">
-            <div class="card-inner">🌱</div>
-        </div>
     </div>
 
     <script>
         var socket = io();
 
-        document.getElementById("clickme").addEventListener('click', function (e) {
-            console.log('click');
-            e.preventDefault();
-            socket.emit('click', { id: socket.id, cardClicked: 0 });
-        });
-
-        class Card {
-            constructor(number, color) {
-                this.number = number;
-                this.color = color;
-            }
+        function play() {
+            var roomcode = document.getElementById('roomcode').value;
+            window.location.href = "triogame.html" + "?" + "roomcode=" + roomcode;
         }
 
-        function compareCards(a, b) {
-            if (a.number != b.number) {
-                return a.number - b.number;
-            }
-            else if (a.color != b.color) {
-                return a.color - b.color;
+        function requestRoom() {
+            this.socket.emit('requestRoom', undefined, (response) => {
+                console.log(response);
+                if (response[ 'success' ]) {
+                    var roomcode = document.getElementById('roomcode');
+                    roomcode.value = response[ 'roomCode' ];
+                    onRoomcodeInput();
+                }
+            });
+        }
+
+        function setPlayButtonActive(active) {
+            var playButton = document.getElementById('play-button');
+
+            if (active == true) {
+                playButton.style.opacity = 1;
+                playButton.style.pointerEvents = "auto";
+                playButton.style.cursor = "pointer";
             }
             else {
-                return 0;
+                playButton.style.opacity = 0.5;
+                playButton.style.pointerEvents = "none";
             }
         }
 
-        var cards = [];
-        var lastPlayed = new Card(-1, 4);
+        function onRoomcodeInput() {
+            var roomcode = document.getElementById('roomcode').value;
+            var playButton = document.getElementById('play-button');
 
-        function getCards() {
-            console.log('getCards() called');
-            socket.emit('get_cards', socket.id);
-        }
+            setPlayButtonActive(false);
 
-        socket.on("receive_cards", (msg) => {
-            console.log(msg);
-            new_cards = msg[ 'cards' ];
-
-            if (msg[ 'lastPlayed' ].number == undefined)
-                new_lastPlayed = new Card('hi 😊', 4);
-            else
-                new_lastPlayed = msg[ 'lastPlayed' ];
-
-            if (JSON.stringify(cards.slice().sort(compareCards)) !== JSON.stringify(new_cards.slice().sort(compareCards))) {
-                cards = new_cards;
-                drawCards();
-            }
-
-            if (new_lastPlayed != lastPlayed) {
-                lastPlayed = new_lastPlayed;
-                drawLastCard();
-            }
-
-            cards = new_cards;
-            lastPlayed = new_lastPlayed;
-        });
-
-        // rendering
-
-        function lookupColor(color) {
-            switch (color) {
-                case 0:
-                    return 'deepskyblue';
-                    break;
-                case 1:
-                    return 'rgb(62, 212, 48)';
-                    break;
-                case 2:
-                    return 'rgb(236, 33, 77)';
-                    break;
-                case 3:
-                    return 'rgb(252, 214, 0)';
-                    break;
-                case 4:
-                    return 'rgb(0, 0, 0)';
-                    break;
-            }
-        }
-
-        function drawCards() {
-            // the rotation angle will be between + and - this value
-            let rotationSpread = 20;
-
-            console.log('drawCards() called');
-            var newContainer = document.createElement('div');
-            var cardContainer = document.getElementById("card-container");
-            newContainer.id = 'card-container';
-
-            sortedCards = cards.sort(compareCards);
-            console.log('sorted', sortedCards);
-            for (let i = 0; i < sortedCards.length; i++) {
-                var card_div = document.createElement("div");
-                card_div.className = 'card playable';
-                card_div.id = 'card' + i;
-                card_div.style.backgroundColor = lookupColor(sortedCards[ i ].color);
-                card_div.style.setProperty('--rot', (i + 0.5 - sortedCards.length / 2.0) * 2 * rotationSpread / (sortedCards.length - 1) + 'deg');
-                card_div.style.setProperty('--arc-translate', Math.abs(i - sortedCards.length / 2.0) * 6 + 'px');
-
-                var card_inner_div = document.createElement("div");
-                card_inner_div.className = 'card-inner';
-                card_inner_div.innerHTML = sortedCards[ i ].number;
-
-                card_div.appendChild(card_inner_div);
-                newContainer.appendChild(card_div);
-
-                card_div.addEventListener('click', function (e) {
-                    console.log('clicked card', i);
-                    e.preventDefault();
-                    socket.emit('click', { id: socket.id, cardClicked: i });
+            if (roomcode.length == 4) {
+                this.socket.emit('isRoomcodeValid', roomcode, (response) => {
+                    setPlayButtonActive(response);
                 });
             }
-            cardContainer.replaceWith(newContainer);
         }
 
-        function drawLastCard() {
-            // random rotation of last played card
-            var lastSpread = 50;
-            var x_spread = 60;
-            var y_spread = 60;
-
-            // last played card
-            var newLastPlayedContainer = document.getElementById("last-played-card-container");
-            var lastPlayedContainer = document.getElementById("last-played-card-container");
-            newLastPlayedContainer.id = "last-played-card-container";
-
-            var last_card_div = document.createElement("div");
-            last_card_div.className = 'card';
-            last_card_div.style.backgroundColor = lookupColor(lastPlayed.color);
-            last_card_div.style.setProperty('--rot', Math.random() * (2 * lastSpread) - lastSpread + 'deg');
-            last_card_div.style.setProperty('--rand_x', Math.random() * x_spread - (1 / 2) * x_spread + 'px');
-            last_card_div.style.setProperty('--rand_y', Math.random() * y_spread - (1 / 2) * y_spread + 'px');
-            last_card_div.style.position = 'absolute';
-
-            var last_card_inner_div = document.createElement("div");
-            last_card_inner_div.className = 'card-inner';
-            last_card_inner_div.innerHTML = lastPlayed.number;
-
-            last_card_div.appendChild(last_card_inner_div);
-            newLastPlayedContainer.appendChild(last_card_div);
-            lastPlayedContainer.replaceWith(newLastPlayedContainer);
-        }
-
-        function check() {
-            if (socket.id == undefined) {
-                console.log('yes');
-                console.log(socket.id);
-                return setTimeout(check, 10);
-            }
-            console.log('now');
-            socket.emit('join_game', socket.id);
-        }
-        check();
+        socket.on("connect", (msg) => {
+            console.log('Connected to server');
+        });
 
     </script>
 </body>

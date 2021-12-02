@@ -15,10 +15,16 @@ app.use(express.static(__dirname + '/static'));
 // app.use(express.static('public'));
 // app.use(express.static('static'));
 
+
 // Routing
 app.get('/', function (request, response) {
     response.sendFile(path.join(__dirname, 'index.html'));
 });
+
+app.get('/triogame.html', function (request, response) {
+    response.sendFile(path.join(__dirname, 'triogame.html'));
+});
+
 
 // Starts the server.
 server.listen(port, function () {
@@ -27,6 +33,24 @@ server.listen(port, function () {
 
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
+}
+
+
+// helper functions
+function randomString(characters, length) {
+    var result = '';
+    for (var i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+}
+
+function generateRoomCode() {
+    return randomString('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4);
+}
+
+function generatePlayerID() {
+    return randomString('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890', 20);
 }
 
 class Card {
@@ -71,11 +95,16 @@ class Player {
 
 class Game {
     constructor() {
-        this.player_count = 0;
         this.players = new Map;
         this.starting_card_number = 8;
 
         this.lastPlayed = new Card();
+
+        this.timeCreated = Date.now();      // in milliseconds
+    }
+
+    getAge() {
+        return Date.now() - this.timeCreated;
     }
 
     player_join(name, id) {
@@ -85,10 +114,26 @@ class Game {
     }
 }
 
+var games = new Map();
+var checkGameValidityInterval = 1000;
+var pruneInactiveGamesAfter = 15000;
+
+// prune old inactive games
+// TODO change to callback using setTimeout
+setInterval(() => {
+    console.log(games);
+
+    games.forEach((game, key, map) => {
+        if (game.getAge() > pruneInactiveGamesAfter && game.players.size == 0) {
+            console.log("Pruning game", key);
+            games.delete(key);
+        }
+    });
+}, checkGameValidityInterval);
+
 // var player = new Player();
 // player.deal_random(8);
 
-var game = new Game();
 
 // setTimeout(player.deal_random.bind(player), 5000, 8);
 // setInterval(() => console.log(player.cards.length), 1000);
@@ -134,10 +179,33 @@ io.on('connection', (socket) => {
     });
 
     socket.on('join_game', (msg) => {
-        id = msg;
-        console.log(id + ' joins');
-        game.player_join('noname', id);
-        console.log(game.players);
-        send_state(game, id);
+        roomCode = msg[ 'roomCode' ].toUpperCase();
+        id = msg['id'];
+        playerID = console.log(generatePlayerID());
+        console.log(playerID + ' (session id=' + id + ') wants to join ' + roomCode);
+
+        try {
+            games.get(roomCode).player_join('noname', id);
+            send_state(games.get(msg['roomCode']), id);
+        }
+        catch (e) {
+            console.log(e);
+        }
+    });
+
+    socket.on('isRoomcodeValid', (data, callback) => {
+        let roomCode = data.toUpperCase();
+        callback(games.has(roomCode));
+    });
+
+    socket.on('requestRoom', (data, callback) => {
+        roomCode = generateRoomCode();
+        games.set(roomCode, new Game());
+        console.log(games);
+
+        callback({
+            'success': true,
+            'roomCode': roomCode
+        });
     });
 });

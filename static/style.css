@@ -58,11 +58,87 @@
     margin: auto;
 }
 
+#room-container {
+    margin: auto;
+}
+
+#roomcode-container {
+    display        : flex;
+    align-items    : stretch;
+    justify-content: center;
+    font-size      : 8rem;
+}
+
+#roomcode {
+    width         : 2.4em;
+    height        : 0.7em;
+    font-size     : inherit;
+    text-transform: uppercase;
+    padding       : 0.1em;
+    border-radius : 0.0;
+    font-family   : 'Source Code Pro', monospace;
+}
+
+#roomcode::placeholder {
+    font-size : 0.4em;
+    text-align: center;
+    transform : translateY(-0.5em);
+}
+
+#name {
+    width        : 98.8%;
+    font-size    : 1.5em;
+    text-align   : center;
+    padding      : 0.1em;
+    border-radius: 0.0;
+    font-family  : 'Source Code Pro', monospace;
+}
+
+/* #name::placeholder {
+    text-transform: uppercase;
+} */
+
+#play-button {
+    font-size       : inherit;
+    transition      : all 0.13s;
+    line-height     : 1.17em;
+    font-size       : 0.8em;
+    padding-left    : 0.2em;
+    padding-right   : 0.25em;
+    text-decoration : none;
+    color           : white;
+    background-color: black;
+    justify-content : center;
+    user-select     : none;
+    box-sizing      : border-box;
+    /* greyed out */
+    opacity         : 0.5;
+    pointer-events  : none;
+}
+
+#play-button:hover {
+    background-color: rgb(73, 73, 73);
+}
+
+#play-button:active {
+    background-color: #395a31;
+}
+
+#play-circle {
+    font-size : 1.5em;
+    padding   : 40px 0;
+    max-height: 10px;
+}
+
 body {
-    background-color: rgb(228, 228, 228);
-    display         : flex;
-    flex-direction  : column;
-    height          : 100vh;
-    margin          : 0;
-    overflow        : hidden;
+    font-family   : 'Merriweather', serif;
+    background    : rgb(255, 255, 255);
+    background    : radial-gradient(circle, rgb(243, 243, 243) 0%, rgb(180, 180, 180) 100%);
+    display       : flex;
+    flex-direction: column;
+    height        : 100vh;
+    margin        : 0;
+    overflow      : hidden;
+    font-size     : 2vh;
+    /* cursor        : url(cursor.png), pointer; */
 }
