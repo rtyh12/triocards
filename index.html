@@ -52,9 +52,9 @@
         function requestRoom() {
             this.socket.emit('requestRoom', undefined, (response) => {
                 console.log(response);
-                if (response[ 'success' ]) {
+                if (response['success']) {
                     var roomcode = document.getElementById('roomcode');
-                    roomcode.value = response[ 'roomCode' ];
+                    roomcode.value = response['roomCode'];
                     onRoomcodeInput();
                 }
             });

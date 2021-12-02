@@ -19,6 +19,7 @@
 
 <body>
     <!-- TODO move scripts into head and use async/defer -->
+    <!-- TODO move scripts into their own file -->
     <script src="https://cdn.socket.io/4.4.0/socket.io.min.js"
         integrity="sha384-1fOn6VtTq3PWwfsOrk45LnYcGosJwzMHv+Xh/Jx5303FVOXzEnw0EpLv30mtjmlj" crossorigin="anonymous">
         </script>
@@ -37,24 +38,27 @@
     </div>
 
     <script>
+        var socket = io();
+
+        // helper functions
+
         function GetURLParameter(sParam) {
             var sPageURL = window.location.search.substring(1);
             var sURLVariables = sPageURL.split('&');
             for (var i = 0; i < sURLVariables.length; i++) {
-                var sParameterName = sURLVariables[ i ].split('=');
-                if (sParameterName[ 0 ] == sParam) {
-                    return sParameterName[ 1 ];
+                var sParameterName = sURLVariables[i].split('=');
+                if (sParameterName[0] == sParam) {
+                    return sParameterName[1];
                 }
             }
         }
 
-        roomCode = GetURLParameter('roomcode');
-        console.log(GetURLParameter('roomcode'));
+        // game state
 
-        var socket = io();
+        var roomCode = GetURLParameter('roomcode');
+        var player_id = undefined;
 
         document.getElementById("clickme").addEventListener('click', function (e) {
-            console.log('click');
             e.preventDefault();
             socket.emit('click', { id: socket.id, cardClicked: 0 });
         });
@@ -81,28 +85,36 @@
         var cards = [];
         var lastPlayed = new Card(-1, 4);
 
-        function getCards() {
-            console.log('getCards() called');
-            socket.emit('get_cards', socket.id);
+        // network
+
+        function requestState() {
+            msg = {
+                'roomCode': roomCode,
+                'player_id': player_id
+            }
+            socket.emit('requestState', msg, (response) => {
+                console.log(response);
+            });
         }
 
         socket.on("receive_cards", (msg) => {
             console.log(msg);
-            new_cards = msg[ 'cards' ];
+            new_cards = msg['cards'];
 
-            if (msg[ 'lastPlayed' ].number == undefined)
+            if (msg['lastPlayed'].number == undefined)
                 new_lastPlayed = new Card('hi 😊', 4);
             else
-                new_lastPlayed = msg[ 'lastPlayed' ];
+                new_lastPlayed = msg['lastPlayed'];
 
+            // if new and old cards are not the same
             if (JSON.stringify(cards.slice().sort(compareCards)) !== JSON.stringify(new_cards.slice().sort(compareCards))) {
                 cards = new_cards;
-                drawCards();
+                renderCards();
             }
 
             if (new_lastPlayed != lastPlayed) {
                 lastPlayed = new_lastPlayed;
-                drawLastCard();
+                renderLastCard();
             }
 
             cards = new_cards;
@@ -131,7 +143,7 @@
             }
         }
 
-        function drawCards() {
+        function renderCards() {
             // the rotation angle will be between + and - this value
             let rotationSpread = 20;
 
@@ -146,13 +158,13 @@
                 var card_div = document.createElement("div");
                 card_div.className = 'card playable';
                 card_div.id = 'card' + i;
-                card_div.style.backgroundColor = lookupColor(sortedCards[ i ].color);
+                card_div.style.backgroundColor = lookupColor(sortedCards[i].color);
                 card_div.style.setProperty('--rot', (i + 0.5 - sortedCards.length / 2.0) * 2 * rotationSpread / (sortedCards.length - 1) + 'deg');
                 card_div.style.setProperty('--arc-translate', Math.abs(i - sortedCards.length / 2.0) * 6 + 'px');
 
                 var card_inner_div = document.createElement("div");
                 card_inner_div.className = 'card-inner';
-                card_inner_div.innerHTML = sortedCards[ i ].number;
+                card_inner_div.innerHTML = sortedCards[i].number;
 
                 card_div.appendChild(card_inner_div);
                 newContainer.appendChild(card_div);
@@ -160,13 +172,17 @@
                 card_div.addEventListener('click', function (e) {
                     console.log('clicked card', i);
                     e.preventDefault();
-                    socket.emit('click', { id: socket.id, cardClicked: i });
+                    socket.emit('click', {
+                        'player_id': player_id,
+                        'roomCode': roomCode,
+                        'cardClicked': i
+                    });
                 });
             }
             cardContainer.replaceWith(newContainer);
         }
 
-        function drawLastCard() {
+        function renderLastCard() {
             // random rotation of last played card
             var lastSpread = 50;
             var x_spread = 60;
@@ -194,19 +210,22 @@
             lastPlayedContainer.replaceWith(newLastPlayedContainer);
         }
 
-        function check() {
+        // on page load, keep trying to connect until successful
+
+        function connect() {
             if (socket.id == undefined) {
-                console.log('yes');
-                console.log(socket.id);
-                return setTimeout(check, 10);
+                return setTimeout(connect, 10);
             }
-            console.log('now');
-            socket.emit('join_game', {
-                'id': socket.id,
-                'roomCode': roomCode
+            socket.emit('requestJoin', {
+                'session_id': socket.id,
+                'roomCode': roomCode,
+            }, (response) => {
+                console.log('Connection successful yey');
+                player_id = response['player_id'];
+                roomCode = response['roomCode'];
             });
         }
-        check();
+        connect();
 
     </script>
 </body>
