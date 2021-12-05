@@ -18,27 +18,29 @@
     <title>Document</title>
 </head>
 
-<body>
+<body class=trio>
     <!-- TODO move scripts into head and use async/defer -->
     <script src="https://cdn.socket.io/4.4.0/socket.io.min.js"
         integrity="sha384-1fOn6VtTq3PWwfsOrk45LnYcGosJwzMHv+Xh/Jx5303FVOXzEnw0EpLv30mtjmlj" crossorigin="anonymous">
         </script>
 
-    <div id='room-container'>
-        <input type="text" id="name" name="name" placeholder="Enter your name" oninput="onNameInput()">
-        <br>
-        <br>
-        <div id='roomcode-container'>
-            <input type="text" id="roomcode" maxlength="4" name="roomcode" placeholder="Room code"
-                oninput="onRoomcodeInput()">
-            <a onclick="play();" id="play-button">
-                PLAY
-                <!-- <span class="material-icons-outlined" id='play-circle'>play_circle</span> -->
-            </a>
+    <div id='main-container' class='trio'>
+        <div id='room-container'>
+            <input type="text" id="name" name="name" placeholder="Enter your name" oninput="onNameInput()">
+            <br>
+            <br>
+            <div id='roomcode-container'>
+                <input type="text" id="roomcode" maxlength="4" name="roomcode" placeholder="Room code"
+                    oninput="onRoomcodeInput()">
+                <a onclick="play();" id="play-button" class="trio">
+                    PLAY
+                    <!-- <span class="material-icons-outlined" id='play-circle'>play_circle</span> -->
+                </a>
+            </div>
+            <br>
+            Or <a href="#" onclick="requestRoom();" id="requestRoom">create a new room</a>
         </div>
-        <br>
-        Or <a href="#" onclick="requestRoom();" id="requestRoom">create a new room</a>
-    </div>
+        <!-- <div id='main-border-1'></div> -->
     </div>
 
     <script>
