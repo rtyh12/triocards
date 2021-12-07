@@ -1,0 +1,127 @@
+@font-face {
+    font-family: Prisma;
+    src        : url('Prisma.otf');
+}
+
+@font-face {
+    font-family: "Abstract Groovy";
+    src        : url('AbstractGroovy.otf');
+}
+
+#play-button.trio {
+    /* background-color: var(--trio-blue); */
+    background-color   : transparent;
+    color              : var(--trio-orange);
+    font-family        : "Abstract Groovy";
+    filter             : drop-shadow(0rem -0.15rem 0rem var(--trio-yellow));
+    transition-duration: 0.3s;
+}
+
+#play-button.trio:hover {
+    /* filter             : drop-shadow(0rem -0.15rem 0rem var(--trio-yellow)); */
+    color                 : var(--trio-blue);
+    /* animation          : play-button-hover-anim 0.9s infinite; */
+    /* animation-direction: alternate-reverse; */
+}
+
+@keyframes play-button-hover-anim {
+    0% {
+        filter: drop-shadow(0rem -0.15rem 0rem var(--trio-yellow));
+    }
+
+    50% {
+        filter: drop-shadow(0rem -0.15rem 0rem var(--trio-yellow));
+    }
+}
+
+#container-left.trio {
+    transform  : rotate(18deg);
+    margin-left: 3em;
+}
+
+#title.trio {
+    font-size     : 13rem;
+    color         : var(--trio-orange);
+    /* filter     : drop-shadow(0 -0.3rem 0.8rem var(--trio-orange)); */
+    font-family   : Prisma;
+    filter        : drop-shadow(-0.5rem 0rem 0rem var(--trio-brown));
+}
+
+.separator {
+    transform  : skewX(-18deg);
+    height     : 100%;
+    width      : 6em;
+    margin-left: -1px;
+}
+
+#separator.trio {
+    background-color: var(--trio-brown);
+}
+
+#separator2.trio {
+    background-color: var(--trio-orange);
+}
+
+#separator3.trio {
+    background-color: var(--trio-yellow);
+}
+
+input.trio {
+    background-color: rgb(37, 37, 37);
+    color           : var(--trio-orange);
+    border          : solid 2px var(--trio-orange);
+    border-radius   : 1em;
+    transition      : 0.3s ease-in;
+}
+
+input.trio:focus {
+    filter       : drop-shadow(0 -0em 0.4em var(--trio-brown));
+    outline-width: 0;
+    /* border    : solid 2px var(--trio-orange); */
+}
+
+#name.trio {
+    font-family : 'Abstract Groovy', serif;
+    /* font-size: 1.5rem; */
+}
+
+#container-right.trio {
+    background-color: var(--trio-blue);
+    height          : 100%;
+    flex            : 1;
+    margin-left     : -9.1em
+}
+
+#roomcode.trio {
+    font-family: 'Abstract Groovy', serif;
+    width      : 14rem;
+    font-size  : 4rem;
+    text-align : center;
+}
+
+a.trio {
+    color          : var(--trio-orange);
+    text-decoration: none;
+    font-size      : 1.5rem;
+}
+
+a.trio:visited {
+    color: var(--trio-orange);
+}
+
+body.trio {
+    font-family           : 'Abstract Groovy', serif;
+    --trio-blue           : rgb(0, 211, 199);
+    --trio-brown          : rgb(109, 59, 35);
+    --trio-orange         : rgb(255, 96, 0);
+    --trio-yellow         : rgb(255, 167, 15);
+    --trio-cream          : rgb(255, 247, 200);
+    --trio-cream-darker   : rgb(233, 198, 123);
+    /* --trio-cream-darker: rgb(136, 47, 136); */
+    background            : radial-gradient(ellipse at right, rgb(73, 73, 73) 0%, rgb(8, 8, 8) 100%);
+    /* background-color   : var(--trio-cream); */
+}
+
+body.trio::selection {
+    background: var(--trio-blue);
+}

@@ -172,9 +172,19 @@ function sendState(roomCode, player_id) {
             // if neither of these threw an exception, player exists in the correct room
             console.log('sending state to', player_id, 'in room', roomCode, 'via session', player.session_id);
 
+            let playersState = [];
+            for (let [key, value] of games.get(roomCode).players) {
+                playersState.push({
+                    'name': value.name,
+                    'cardCount': value.cards.length
+                })
+            }
+
             io.to(player.session_id).emit('receive_cards', {
                 'cards': player.cards,
-                'lastPlayed': game.lastPlayed
+                'lastPlayed': game.lastPlayed,
+                'playersState': playersState,
+                // 'turn': turn
             });
         }
         catch (e) {

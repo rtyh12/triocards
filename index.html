@@ -15,6 +15,9 @@
         rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"
+        integrity="sha256-0H3Nuz3aug3afVbUlsu12Puxva3CP4EhJtPExqs54Vg=" crossorigin="anonymous"></script>
+
     <title>Document</title>
 </head>
 
@@ -24,23 +27,37 @@
         integrity="sha384-1fOn6VtTq3PWwfsOrk45LnYcGosJwzMHv+Xh/Jx5303FVOXzEnw0EpLv30mtjmlj" crossorigin="anonymous">
         </script>
 
-    <div id='main-container' class='trio'>
-        <div id='room-container'>
-            <input type="text" id="name" name="name" placeholder="Enter your name" oninput="onNameInput()">
-            <br>
-            <br>
-            <div id='roomcode-container'>
-                <input type="text" id="roomcode" maxlength="4" name="roomcode" placeholder="Room code"
-                    oninput="onRoomcodeInput()">
-                <a onclick="play();" id="play-button" class="trio">
-                    PLAY
-                    <!-- <span class="material-icons-outlined" id='play-circle'>play_circle</span> -->
-                </a>
+    <div id='everything-container'>
+        <div id='container-left' class='trio'>
+
+            <div id='title' class='trio'>
+                Trio
             </div>
-            <br>
-            Or <a href="#" onclick="requestRoom();" id="requestRoom">create a new room</a>
+
+            <div id='room-container'>
+                <input type="text" id="name" name="name" placeholder="Player name" oninput="onNameInput()" class="trio">
+                <br>
+                <br>
+                <div id='roomcode-container'>
+                    <input type="text" id="roomcode" maxlength="4" name="roomcode" placeholder="Room code"
+                        oninput="onRoomcodeInput()" class="trio">
+                    <a onclick="play();" id="play-button" class="trio">
+                        PLAY
+                        <!-- <span class="material-icons-outlined" id='play-circle'>play_circle</span> -->
+                    </a>
+                </div>
+                <br>
+            </div>
+            <a href="#" onclick="requestRoom();" id="requestRoom" class='trio'>Or: create a new room</a>
+            <!-- <div id='main-border-1'></div> -->
         </div>
-        <!-- <div id='main-border-1'></div> -->
+
+        <div id='separator' class='separator trio'></div>
+        <div id='separator2' class='separator trio'></div>
+        <div id='separator3' class='separator trio'></div>
+
+        <div id='container-right' class='trio'></div>
+
     </div>
 
     <script>
@@ -48,6 +65,9 @@
 
         function play() {
             var roomcode = document.getElementById('roomcode').value;
+            Cookies.remove('player_id');
+            Cookies.set('roomCode', roomcode);
+            console.log('rem')
             window.location.href = "triogame.html" + "?" + "roomcode=" + roomcode;
         }
 

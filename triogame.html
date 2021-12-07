@@ -27,6 +27,12 @@
         integrity="sha384-1fOn6VtTq3PWwfsOrk45LnYcGosJwzMHv+Xh/Jx5303FVOXzEnw0EpLv30mtjmlj" crossorigin="anonymous">
         </script>
 
+    <div id='player-list-container'>
+        <div class='player-list-item'>
+            hello
+        </div>
+    </div>
+
     <div id='last-played-card-container'>
     </div>
 
@@ -127,28 +133,63 @@
         // rendering
 
         function lookupColor(color) {
-            switch (color) {
-                case 0:
-                    return 'deepskyblue';
-                    break;
-                case 1:
-                    return 'rgb(62, 212, 48)';
-                    break;
-                case 2:
-                    return 'rgb(236, 33, 77)';
-                    break;
-                case 3:
-                    return 'rgb(252, 214, 0)';
-                    break;
-                case 4:
-                    return 'rgb(0, 0, 0)';
-                    break;
-            }
+            // https://colorhunt.co/palette/b2085df9c11c0d85493a3d44
+
+            // return [
+            //     '#3DB2FF',
+            //     '#B6C867',
+            //     '#FFB830',
+            //     '#FF2442',
+            //     '#faf2da',
+            // ][color]
+
+            return [
+                'rgb(0, 211, 199)',
+                'rgb(255, 96, 0)',
+                'rgb(255, 167, 15)',
+                '#B6C867',
+                'rgb(109, 59, 35)',
+            ][color]
+
+            // switch (color) {
+            //     case 0:
+            //         // blue
+            //         // return 'rgb(0, 211, 199)';
+            //         // return '#e1b10f';
+            //         // return '#742e12';
+            //         return '#11052c';
+            //         break;
+            //     case 1:
+            //         // orange
+            //         // return 'rgb(255, 96, 0)';
+            //         // return '#e0cdd0';
+            //         // return '#d28a2d';
+            //         return '#3d087b';
+            //         break;
+            //     case 2:
+            //         // light orange
+            //         // return '#5A5BF5';
+            //         // return '#fb9ab6';
+            //         // return '#bfbda2';
+            //         return '#F43B86';
+            //         break;
+            //     case 3:
+            //         // yellow
+            //         // return 'rgb(252, 214, 0)';
+            //         // return '#448a9a';
+            //         // return '#2f6c68';
+            //         return '#FFE459';
+            //         break;
+            //     case 4:
+            //         // return 'rgb(60, 50, 40)';
+            //         return '#faf2da';
+            //         break;
+            // }
         }
 
         function renderCards() {
             // the rotation angle will be between + and - this value
-            let rotationSpread = 20;
+            let rotationSpread = 15;
 
             console.log('drawCards() called');
             var newContainer = document.createElement('div');
