@@ -36,7 +36,7 @@
     color              : var(--trio-orange);
     font-family        : "Abstract Groovy";
     filter             : drop-shadow(-0.3rem 0rem 0rem var(--trio-brown));
-    transition-duration: 0.3s;
+    transition-duration: 0.1s;
 }
 
 #play-button.trio:hover {
@@ -133,18 +133,19 @@ a.trio:visited {
 }
 
 body.trio {
-    font-family           : 'Abstract Groovy', serif;
-    --trio-black          : rgb(25, 36, 35);
-    --trio-blue           : rgb(109, 167, 163);
-    --trio-brown          : rgb(105, 68, 51);
-    --trio-orange         : rgb(255, 133, 57);
-    --trio-yellow         : rgb(255, 187, 68);
-    --trio-cream          : rgb(255, 248, 209);
-    --trio-cream-darker   : rgb(233, 198, 123);
-    /* --trio-cream-darker: rgb(136, 47, 136); */
-    background            : radial-gradient(ellipse at right, rgb(46, 51, 50) 0%, var(--trio-black) 100%);
-    /* background            : var(--trio-black); */
-    /* background-color   : var(--trio-cream); */
+    font-family              : 'Abstract Groovy', serif;
+    --trio-black-blue        : rgb(25, 36, 35);
+    --trio-black-brown       : rgb(43, 29, 27);
+    --trio-blue              : rgb(109, 167, 163);
+    --trio-brown             : rgb(105, 68, 51);
+    --trio-orange            : rgb(255, 133, 57);
+    --trio-yellow            : rgb(255, 187, 68);
+    --trio-cream             : rgb(255, 248, 209);
+    --trio-cream-darker      : rgb(233, 198, 123);
+    /* --trio-cream-darker   : rgb(136, 47, 136); */
+    /* background            : radial-gradient(ellipse at right, rgb(46, 51, 50) 0%, var(--trio-black) 100%); */
+    background               : rgb(43, 29, 27);
+    /* background-color      : var(--trio-cream); */
 }
 
 body.trio::selection {

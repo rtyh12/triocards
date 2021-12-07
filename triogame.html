@@ -101,6 +101,7 @@
         var cards = [];
         var lastPlayed = new Card(-1, 4);
         var playersState = new Map();
+        var playedCardsCount = 0;
 
         // network
 
@@ -119,20 +120,25 @@
             playersState = msg['playersState'];
             console.log(playersState)
 
-            if (msg['lastPlayed'].number == undefined)
-                new_lastPlayed = new Card('hi 😊', 4);
-            else
-                new_lastPlayed = msg['lastPlayed'];
-
             // if new and old cards are not the same
             if (JSON.stringify(cards.slice().sort(compareCards)) !== JSON.stringify(new_cards.slice().sort(compareCards))) {
                 cards = new_cards;
                 renderCards();
             }
 
-            if (new_lastPlayed != lastPlayed) {
+            // no card played yet
+            if (msg['lastPlayed'].number === undefined) {
+                lastPlayed = new Card('hi  😊', 4);
+                renderLastCard();
+            }
+            else {
+                new_lastPlayed = msg['lastPlayed'];
+            }
+
+            if (msg['playedCardsCount'] > playedCardsCount) {
                 lastPlayed = new_lastPlayed;
                 renderLastCard();
+                playedCardsCount = msg['playedCardsCount'];
             }
 
             renderPlayers();
@@ -149,7 +155,7 @@
                 'rgb(255, 96, 0)',
                 'rgb(255, 167, 15)',
                 '#B6C867',
-                'rgb(109, 59, 35)',
+                'rgb(43, 29, 27)',
             ][color]
         }
 

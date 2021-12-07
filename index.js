@@ -93,7 +93,7 @@ class Player {
         this.cards.sort(compareCards);
     }
 
-    playCard(num, game) {
+    playCard(num) {
         if (num < 0 || num >= this.cards.length) {
             throw 'Player.playCard received illegal argument num ' + num;
         }
@@ -101,24 +101,60 @@ class Player {
         if (this.cards.length == 0) {
             this.deal_random(8);
         }
-        game.lastPlayed = removed[0];
         this.cards.sort(compareCards);
-        return removed;
+        return removed[0];
     }
 }
 
+function cardsCompatible(a, b) {
+    return a.color == b.color
+        || a.number == b.number
+        || a.color == 4
+        || b.color == 4;
+}
+
 class Game {
-    constructor() {
+    constructor(roomCode) {
+        this.roomCode = roomCode;
+
         this.players = new Map;
-        this.starting_card_number = 8;
+        this.starting_card_number = 1;
 
         this.lastPlayed = new Card();
+        this.lastPlayed.color = 4;
+        this.playedCardsCount = 0;
 
         this.timeCreated = Date.now();      // in milliseconds
     }
 
     startGame() {
         this.whoseTurn = 0;
+    }
+
+    endTurn() {
+        this.whoseTurn++;
+        if (this.whoseTurn >= this.playerIDs.length)
+            this.whoseTurn = 0;
+    }
+
+    playTurn(player_id, turn) {
+        console.log(player_id, turn, this.lastPlayed.color);
+
+        if (this.playerIDs[this.whoseTurn] !== player_id)
+            return;
+
+        if (turn['type'] == 'p') {
+            let cardToPlay = this.players.get(player_id).cards[turn['card']];
+
+            if (cardsCompatible(cardToPlay, this.lastPlayed)) {
+                let playedCard = this.players.get(player_id).playCard(turn['card'], this);
+                this.lastPlayed = playedCard;
+                this.playedCardsCount++;
+                this.endTurn();
+            }
+        }
+
+        sendStateAll(this.roomCode);
     }
 
     getAge() {
@@ -132,6 +168,7 @@ class Game {
         player.session_id = session_id;
         player.deal_random(this.starting_card_number);
         this.players.set(player_id, player);
+        this.playerIDs = Array.from(this.players.keys());
     }
 
     activePlayerCount() {
@@ -176,7 +213,7 @@ function sendState(roomCode, player_id) {
                     'player_id': key,
                     'name': value.name,
                     'cardCount': value.cards.length,
-                    'turn': false
+                    'turn': key === game.playerIDs[game.whoseTurn]
                 })
             }
 
@@ -185,6 +222,7 @@ function sendState(roomCode, player_id) {
             io.to(player.session_id).emit('receiveState', {
                 'cards': player.cards,
                 'lastPlayed': game.lastPlayed,
+                'playedCardsCount': game.playedCardsCount,
                 'playersState': playersState,
                 // 'turn': turn
             });
@@ -204,7 +242,7 @@ function sendStateAll(roomCode) {
 io.on('connection', (socket) => {
     socket.on('requestRoom', (data, callback) => {
         roomCode = generateRoomCode();
-        games.set(roomCode, new Game());
+        games.set(roomCode, new Game(roomCode));
         console.log('Created room ' + roomCode);
 
         callback({
@@ -299,8 +337,7 @@ io.on('connection', (socket) => {
         console.log(player_id, 'in room', roomCode, 'wants to perform move', move);
 
         try {
-            game.players.get(player_id).playCard(cardClicked, game);
-            sendStateAll(roomCode);
+            game.playTurn(player_id, move);
         }
         catch (e) {
             console.log(e);

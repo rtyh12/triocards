@@ -1,5 +1,7 @@
 .vscode
 
+static/ignore
+
 # Logs
 logs
 *.log

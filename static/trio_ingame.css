@@ -31,7 +31,7 @@
 .card {
     /* background-color: rgb(98, 158, 103); */
     /* background-color: rgb(221, 221, 221); */
-    border         : solid white 8px;
+    border         : solid rgb(255, 248, 209) 8px;
     border-radius  : 15px;
     filter         : drop-shadow(0 0 0.15rem rgba(0, 0, 0, 0.6)) brightness(100%);
     width          : 120px;
@@ -46,11 +46,9 @@
     --rand_x       : 0px;
     --rand_y       : 0px;
     transform      : scale(var(--scale)) translate(calc(0px + var(--rand_x)), calc(var(--translate) + var(--arc-translate) + var(--rand_y))) rotate(var(--rot));
-
-    /* background: linear-gradient(145deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.24723392775078779) 47%, rgba(0,0,0,0.2248249641653537) 53%); */
+    /* background: linear-gradient(121deg, rgb(255 255 255 / 0%) 0%, rgba(255,255,255,0.24723392775078779) 50%, rgba(0,0,0,0.2248249641653537) 51%); */
     /* background: url(noise.svg),
         rgb(1, 1, 1, 0.1); */
-
     background-blend-mode: multiply;
     /* background-color  : black; */
     /* padding           : 20px;
