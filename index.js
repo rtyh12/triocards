@@ -175,12 +175,16 @@ function sendState(roomCode, player_id) {
             let playersState = [];
             for (let [key, value] of games.get(roomCode).players) {
                 playersState.push({
+                    'player_id': key,
                     'name': value.name,
-                    'cardCount': value.cards.length
+                    'cardCount': value.cards.length,
+                    'turn': false
                 })
             }
 
-            io.to(player.session_id).emit('receive_cards', {
+            console.log(playersState)
+
+            io.to(player.session_id).emit('receiveState', {
                 'cards': player.cards,
                 'lastPlayed': game.lastPlayed,
                 'playersState': playersState,

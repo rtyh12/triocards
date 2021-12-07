@@ -1,0 +1,24 @@
+#player-list-container {
+    padding       : 20px;
+    display       : flex;
+    flex-direction: column;
+    user-select   : none;
+}
+
+.player-list-item {
+    display       : flex;
+    flex-direction: row;
+    font-size     : 2rem;
+}
+
+.player_id {
+    width: 15rem;
+}
+
+.card-count {
+    width: 15rem;
+}
+
+.turn {
+    width: 15rem;
+}

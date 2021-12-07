@@ -29,7 +29,14 @@
 
     <div id='player-list-container'>
         <div class='player-list-item'>
-            hello
+            <div class='player_id'>hello</div>
+            <div class='card_count'>5 cards</div>
+            <div class='turn'>thinking...</div>
+        </div>
+        <div class='player-list-item'>
+            <div class='player_id'>hello</div>
+            <div class='card_count'>5 cards</div>
+            <div class='turn'>thinking...</div>
         </div>
     </div>
 
@@ -93,6 +100,7 @@
 
         var cards = [];
         var lastPlayed = new Card(-1, 4);
+        var playersState = new Map();
 
         // network
 
@@ -106,9 +114,10 @@
             });
         }
 
-        socket.on("receive_cards", (msg) => {
-            console.log(msg);
+        socket.on("receiveState", (msg) => {
             new_cards = msg['cards'];
+            playersState = msg['playersState'];
+            console.log(playersState)
 
             if (msg['lastPlayed'].number == undefined)
                 new_lastPlayed = new Card('hi 😊', 4);
@@ -125,6 +134,8 @@
                 lastPlayed = new_lastPlayed;
                 renderLastCard();
             }
+
+            renderPlayers();
 
             cards = new_cards;
             lastPlayed = new_lastPlayed;
@@ -251,6 +262,44 @@
             last_card_div.appendChild(last_card_inner_div);
             newLastPlayedContainer.appendChild(last_card_div);
             lastPlayedContainer.replaceWith(newLastPlayedContainer);
+        }
+
+        function renderPlayers() {
+            var newPlayerListContainer = document.createElement('div');
+            newPlayerListContainer.id = 'player-list-container';
+            var oldPlayerListContainer = document.getElementById("player-list-container");
+
+            try {
+                playersState.forEach(player => {
+                    let newPlayerListItem = document.createElement('div');
+                    newPlayerListItem.className = 'player-list-item';
+
+                    console.log(playersState)
+
+                    let newPlayerListItemName = document.createElement('div');
+                    newPlayerListItemName.className = 'player_id';
+                    newPlayerListItemName.innerHTML = player['name']
+
+                    let newPlayerListItemCardCount = document.createElement('div');
+                    newPlayerListItemCardCount.className = 'card-count';
+                    newPlayerListItemCardCount.innerHTML = player['cardCount']
+
+                    let newPlayerListItemTurn = document.createElement('div');
+                    newPlayerListItemTurn.className = 'turn';
+                    newPlayerListItemTurn.innerHTML = player['turn']
+
+                    newPlayerListItem.append(newPlayerListItemName);
+                    newPlayerListItem.append(newPlayerListItemCardCount);
+                    newPlayerListItem.append(newPlayerListItemTurn);
+
+                    newPlayerListContainer.append(newPlayerListItem);
+                });
+            }
+            catch (e) {
+                console.log(e);
+            }
+
+            oldPlayerListContainer.replaceWith(newPlayerListContainer);
         }
 
         // on page load, wait for socket to be established and then join
