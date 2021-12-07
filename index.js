@@ -117,12 +117,17 @@ class Game {
         this.timeCreated = Date.now();      // in milliseconds
     }
 
+    startGame() {
+        this.whoseTurn = 0;
+    }
+
     getAge() {
         return Date.now() - this.timeCreated;
     }
 
     player_join(name, player_id, session_id) {
         let player = new Player();
+        player.name = name;
         player.player_id = player_id;
         player.session_id = session_id;
         player.deal_random(this.starting_card_number);
@@ -156,13 +161,6 @@ setInterval(() => {
     });
 }, checkGameValidityInterval);
 
-// var player = new Player();
-// player.deal_random(8);
-
-
-// setTimeout(player.deal_random.bind(player), 5000, 8);
-// setInterval(() => console.log(player.cards.length), 1000);
-
 function sendState(roomCode, player_id) {
     let game = games.get(roomCode);
     if (game !== undefined) {
@@ -182,7 +180,7 @@ function sendState(roomCode, player_id) {
                 })
             }
 
-            console.log(playersState)
+            console.log(playersState[0])
 
             io.to(player.session_id).emit('receiveState', {
                 'cards': player.cards,
@@ -195,20 +193,12 @@ function sendState(roomCode, player_id) {
             console.log('Exception in sendState():', e);
         }
     }
+}
 
-    // try {
-    //     io.to(id).emit('receive_cards', {
-    //         'cards': game.players.get(id).cards,
-    //         'lastPlayed': game.lastPlayed
-    //     });
-    // }
-    // catch (e) {
-    //     console.log('Exception in sendState:\n', e);
-    //     io.to(id).emit('receive_cards', {
-    //         'cards': [],
-    //         'lastPlayed': new Card()
-    //     });
-    // }
+function sendStateAll(roomCode) {
+    games.get(roomCode).players.forEach((value, key, map) => {
+        sendState(roomCode, key);
+    });
 }
 
 io.on('connection', (socket) => {
@@ -262,12 +252,17 @@ io.on('connection', (socket) => {
     socket.on('requestJoin', (data, callback) => {
         roomCode = data['roomCode'].toUpperCase();
         session_id = data['session_id'];
+        name_ = data['name'];
         player_id = generatePlayerID();
 
         console.log(player_id + ' (session id=' + session_id + ') wants to join ' + roomCode);
 
         try {
-            games.get(roomCode).player_join('noname', player_id, session_id);
+            if (games.get(roomCode).players.size == 0) {
+                console.log('starting game', roomCode);
+                games.get(roomCode).startGame();
+            }
+            games.get(roomCode).player_join(name_, player_id, session_id);
 
             callback({
                 'approved': true,
@@ -296,17 +291,16 @@ io.on('connection', (socket) => {
     socket.on('click', (data) => {
         let player_id = data['player_id'];
         let roomCode = data['roomCode'];
-        let cardClicked = data['cardClicked'];
+        let move = data['move'];
+        let cardClicked = move['card'];
 
         let game = games.get(roomCode);
 
-        console.log(player_id, 'in room', roomCode, 'wants to click card', data['cardClicked']);
+        console.log(player_id, 'in room', roomCode, 'wants to perform move', move);
 
         try {
-            game.players.get(player_id).playCard(data['cardClicked'], game);
-            game.players.forEach((value, key, map) => {
-                sendState(roomCode, key);
-            });
+            game.players.get(player_id).playCard(cardClicked, game);
+            sendStateAll(roomCode);
         }
         catch (e) {
             console.log(e);

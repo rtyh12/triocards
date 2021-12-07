@@ -8,12 +8,34 @@
     src        : url('AbstractGroovy.otf');
 }
 
+.retro-overlay.trio {
+    position             : absolute;
+    width                : 100vw;
+    height               : 100vh;
+    z-index              : 10;
+    pointer-events       : none;
+    background-blend-mode: overlay;
+    opacity              : 50%;
+}
+
+#bg1.trio {
+    background-image: url('bg/free001.svg');
+    background-size : 7.5vw;
+    transform       : rotate(40deg) scale(2);
+}
+
+#bg2.trio {
+    background-image: url('bg/free007.svg');
+    background-size : 5vw;
+    transform       : rotate(-69deg) scale(2);
+}
+
 #play-button.trio {
     /* background-color: var(--trio-blue); */
     background-color   : transparent;
     color              : var(--trio-orange);
     font-family        : "Abstract Groovy";
-    filter             : drop-shadow(0rem -0.15rem 0rem var(--trio-yellow));
+    filter             : drop-shadow(-0.3rem 0rem 0rem var(--trio-brown));
     transition-duration: 0.3s;
 }
 
@@ -69,13 +91,14 @@
 input.trio {
     background-color: rgb(37, 37, 37);
     color           : var(--trio-orange);
-    border          : solid 2px var(--trio-orange);
+    border          : solid 3px var(--trio-orange);
     border-radius   : 1em;
     transition      : 0.3s ease-in;
 }
 
 input.trio:focus {
-    filter       : drop-shadow(0 -0em 0.4em var(--trio-brown));
+    /* filter       : drop-shadow(-0.4rem -0.1rem 0em var(--trio-brown)); */
+    /* border-width: 4px; */
     outline-width: 0;
     /* border    : solid 2px var(--trio-orange); */
 }
@@ -111,14 +134,16 @@ a.trio:visited {
 
 body.trio {
     font-family           : 'Abstract Groovy', serif;
-    --trio-blue           : rgb(0, 211, 199);
-    --trio-brown          : rgb(109, 59, 35);
-    --trio-orange         : rgb(255, 96, 0);
-    --trio-yellow         : rgb(255, 167, 15);
-    --trio-cream          : rgb(255, 247, 200);
+    --trio-black          : rgb(25, 36, 35);
+    --trio-blue           : rgb(109, 167, 163);
+    --trio-brown          : rgb(105, 68, 51);
+    --trio-orange         : rgb(255, 133, 57);
+    --trio-yellow         : rgb(255, 187, 68);
+    --trio-cream          : rgb(255, 248, 209);
     --trio-cream-darker   : rgb(233, 198, 123);
     /* --trio-cream-darker: rgb(136, 47, 136); */
-    background            : radial-gradient(ellipse at right, rgb(73, 73, 73) 0%, rgb(8, 8, 8) 100%);
+    background            : radial-gradient(ellipse at right, rgb(46, 51, 50) 0%, var(--trio-black) 100%);
+    /* background            : var(--trio-black); */
     /* background-color   : var(--trio-cream); */
 }
 

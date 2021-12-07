@@ -3,9 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="trio_ingame.css">
 
     <!-- google fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -73,6 +72,7 @@
 
         var roomCode = GetURLParameter('roomcode');
         var player_id = undefined;
+        var name;
 
         document.getElementById("clickme").addEventListener('click', function (e) {
             e.preventDefault();
@@ -144,16 +144,6 @@
         // rendering
 
         function lookupColor(color) {
-            // https://colorhunt.co/palette/b2085df9c11c0d85493a3d44
-
-            // return [
-            //     '#3DB2FF',
-            //     '#B6C867',
-            //     '#FFB830',
-            //     '#FF2442',
-            //     '#faf2da',
-            // ][color]
-
             return [
                 'rgb(0, 211, 199)',
                 'rgb(255, 96, 0)',
@@ -161,41 +151,6 @@
                 '#B6C867',
                 'rgb(109, 59, 35)',
             ][color]
-
-            // switch (color) {
-            //     case 0:
-            //         // blue
-            //         // return 'rgb(0, 211, 199)';
-            //         // return '#e1b10f';
-            //         // return '#742e12';
-            //         return '#11052c';
-            //         break;
-            //     case 1:
-            //         // orange
-            //         // return 'rgb(255, 96, 0)';
-            //         // return '#e0cdd0';
-            //         // return '#d28a2d';
-            //         return '#3d087b';
-            //         break;
-            //     case 2:
-            //         // light orange
-            //         // return '#5A5BF5';
-            //         // return '#fb9ab6';
-            //         // return '#bfbda2';
-            //         return '#F43B86';
-            //         break;
-            //     case 3:
-            //         // yellow
-            //         // return 'rgb(252, 214, 0)';
-            //         // return '#448a9a';
-            //         // return '#2f6c68';
-            //         return '#FFE459';
-            //         break;
-            //     case 4:
-            //         // return 'rgb(60, 50, 40)';
-            //         return '#faf2da';
-            //         break;
-            // }
         }
 
         function renderCards() {
@@ -229,7 +184,10 @@
                     socket.emit('click', {
                         'player_id': player_id,
                         'roomCode': roomCode,
-                        'cardClicked': i
+                        'move': {
+                            'type': 'p',
+                            'card': i
+                        }
                     });
                 });
             }
@@ -331,6 +289,7 @@
                     socket.emit('requestJoin', {
                         'session_id': socket.id,
                         'roomCode': roomCode,
+                        'name': Cookies.get('name')
                     }, (response) => {
                         console.log('Connection successful yey');
                         player_id = response['player_id'];

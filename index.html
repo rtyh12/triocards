@@ -3,7 +3,6 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
 
@@ -28,6 +27,9 @@
         </script>
 
     <div id='everything-container'>
+        <!-- <div id='bg1' class='retro-overlay trio'></div>
+        <div id='bg2' class='retro-overlay trio'></div> -->
+
         <div id='container-left' class='trio'>
 
             <div id='title' class='trio'>
@@ -58,22 +60,25 @@
 
         <div id='container-right' class='trio'></div>
 
+
     </div>
+
+    <div id='footer'>This is the footer</div>
 
     <script>
         var socket = io();
 
         function play() {
             var roomcode = document.getElementById('roomcode').value;
+            var name = document.getElementById('name').value;
             Cookies.remove('player_id');
             Cookies.set('roomCode', roomcode);
-            console.log('rem')
+            Cookies.set('name', name);
             window.location.href = "triogame.html" + "?" + "roomcode=" + roomcode;
         }
 
         function requestRoom() {
             this.socket.emit('requestRoom', undefined, (response) => {
-                console.log(response);
                 if (response['success']) {
                     var roomcode = document.getElementById('roomcode');
                     roomcode.value = response['roomCode'];
@@ -82,27 +87,39 @@
             });
         }
 
-        function setPlayButtonActive(active) {
+        function setPlayButtonActive() {
             var playButton = document.getElementById('play-button');
+            var roomcode = document.getElementById('roomcode').value;
+            let name = document.getElementById('name').value;
 
-            if (active == true) {
-                playButton.style.opacity = 1;
-                playButton.style.pointerEvents = "auto";
-                playButton.style.cursor = "pointer";
+            console.log('no');
+
+            // first set to off
+            playButton.style.opacity = 0.5;
+            playButton.style.pointerEvents = "none";
+
+            // validate locally then send room code to server to check if room exists
+            if (roomcode.length == 4 && name.length > 0) {
+                this.socket.emit('isRoomcodeValid', roomcode, (response) => {
+                    playButton.style.opacity = 1;
+                    playButton.style.pointerEvents = "auto";
+                    playButton.style.cursor = "pointer";
+                });
             }
-            else {
-                playButton.style.opacity = 0.5;
-                playButton.style.pointerEvents = "none";
-            }
+        }
+
+        function onNameInput() {
+            setPlayButtonActive();
         }
 
         function onRoomcodeInput() {
             var roomcode = document.getElementById('roomcode').value;
+            var name = document.getElementById('name').value;
             var playButton = document.getElementById('play-button');
 
-            setPlayButtonActive(false);
+            setPlayButtonActive();
 
-            if (roomcode.length == 4) {
+            if (roomcode.length == 4 && name.length > 0) {
                 this.socket.emit('isRoomcodeValid', roomcode, (response) => {
                     setPlayButtonActive(response);
                 });

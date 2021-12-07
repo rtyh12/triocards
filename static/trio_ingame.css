@@ -1,3 +1,8 @@
+@font-face {
+    font-family: "Abstract Groovy";
+    src        : url('AbstractGroovy.otf');
+}
+
 #player-list-container {
     padding       : 20px;
     display       : flex;
@@ -12,7 +17,7 @@
 }
 
 .player_id {
-    width: 15rem;
+    width: 30rem;
 }
 
 .card-count {
@@ -21,4 +26,82 @@
 
 .turn {
     width: 15rem;
+}
+
+.card {
+    /* background-color: rgb(98, 158, 103); */
+    /* background-color: rgb(221, 221, 221); */
+    border         : solid white 8px;
+    border-radius  : 15px;
+    filter         : drop-shadow(0 0 0.15rem rgba(0, 0, 0, 0.6)) brightness(100%);
+    width          : 120px;
+    height         : 180px;
+    transition     : all 0.15s ease;
+    flex-shrink    : 0;
+    margin-left    : -60px;
+    --scale        : 1;
+    --translate    : 0px;
+    --rot          : 0;
+    --arc-translate: 0px;
+    --rand_x       : 0px;
+    --rand_y       : 0px;
+    transform      : scale(var(--scale)) translate(calc(0px + var(--rand_x)), calc(var(--translate) + var(--arc-translate) + var(--rand_y))) rotate(var(--rot));
+
+    /* background: linear-gradient(145deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.24723392775078779) 47%, rgba(0,0,0,0.2248249641653537) 53%); */
+    /* background: url(noise.svg),
+        rgb(1, 1, 1, 0.1); */
+
+    background-blend-mode: multiply;
+    /* background-color  : black; */
+    /* padding           : 20px;
+    box-sizing           : padding-box; */
+}
+
+.playable:hover {
+    filter        : drop-shadow(0 0.3rem 0.7rem rgba(0, 0, 0, 0.3)) brightness(100%);
+    /* --rot      : 10deg; */
+    --scale       : 1.05;
+    --translate   : -40px;
+}
+
+.playable:active {
+    --translate: -50px;
+    filter     : drop-shadow(0 0.3rem 0.7rem rgba(0, 0, 0, 0.3)) brightness(85%);
+}
+
+.card-inner {
+    padding-left    : 10px;
+    font-size  : 40px;
+    font-family: 'Lora', serif;
+    color      : white;
+    text-shadow: -3px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    user-select: none;
+}
+
+#card-container {
+    display        : flex;
+    column-gap     : 10px;
+    justify-content: center;
+    align-items    : center;
+    margin-top     : auto;
+    transform      : translate(0, 25px);
+}
+
+#last-played-card-container {
+    margin: auto;
+}
+
+body {
+    /* background       : rgb(255, 255, 255); */
+    background             : radial-gradient(circle, rgb(243, 243, 243) 0%, rgb(180, 180, 180) 100%);
+    display                : flex;
+    flex-direction         : column;
+    height                 : 100vh;
+    margin                 : 0;
+    overflow               : hidden;
+    font-size              : 2vh;
+    /* cursor              : url(cursor.png), pointer; */
 }
