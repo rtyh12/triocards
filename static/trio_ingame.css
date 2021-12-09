@@ -8,12 +8,19 @@
     display       : flex;
     flex-direction: column;
     user-select   : none;
+    gap           : 0.1em;
 }
 
 .player-list-item {
-    display       : flex;
-    flex-direction: row;
-    font-size     : 2rem;
+    display         : flex;
+    flex-direction  : row;
+    font-size       : 1.5rem;
+    background-color: rgb(43, 29, 27);
+    color           : rgb(255, 248, 209);
+    max-width       : 60%;
+    padding         : 0.1em;
+    padding-left    : 1em;
+    border-radius   : 0.3em;
 }
 
 .player_id {
@@ -31,28 +38,59 @@
 .card {
     /* background-color: rgb(98, 158, 103); */
     /* background-color: rgb(221, 221, 221); */
-    border         : solid rgb(255, 248, 209) 8px;
-    border-radius  : 15px;
-    filter         : drop-shadow(0 0 0.15rem rgba(0, 0, 0, 0.6)) brightness(100%);
-    width          : 120px;
-    height         : 180px;
-    transition     : all 0.15s ease;
-    flex-shrink    : 0;
-    margin-left    : -60px;
-    --scale        : 1;
-    --translate    : 0px;
-    --rot          : 0;
-    --arc-translate: 0px;
-    --rand_x       : 0px;
-    --rand_y       : 0px;
-    transform      : scale(var(--scale)) translate(calc(0px + var(--rand_x)), calc(var(--translate) + var(--arc-translate) + var(--rand_y))) rotate(var(--rot));
-    /* background: linear-gradient(121deg, rgb(255 255 255 / 0%) 0%, rgba(255,255,255,0.24723392775078779) 50%, rgba(0,0,0,0.2248249641653537) 51%); */
-    /* background: url(noise.svg),
+    border                  : solid rgb(255, 248, 209) 8px;
+    border-radius           : 15px;
+    filter                  : drop-shadow(0 0 0.15rem rgba(0, 0, 0, 0.6)) brightness(100%);
+    width                   : 120px;
+    height                  : 180px;
+    transition              : all 0.15s ease;
+    flex-shrink             : 0;
+    margin-left             : -60px;
+    --scale                 : 1;
+    --translate             : 0px;
+    --rot                   : 0;
+    --arc-translate         : 0px;
+    --rand_x                : 0px;
+    --rand_y                : 0px;
+    transform               : scale(var(--scale)) translate(calc(0px + var(--rand_x)), calc(var(--translate) + var(--arc-translate) + var(--rand_y))) rotate(var(--rot));
+    /* background           : linear-gradient(121deg, rgb(255 255 255 / 0%) 0%, rgba(255,255,255,0.24723392775078779) 50%, rgba(0,0,0,0.2248249641653537) 51%); */
+    /* background           : url(noise.svg),
         rgb(1, 1, 1, 0.1); */
-    background-blend-mode: multiply;
-    /* background-color  : black; */
-    /* padding           : 20px;
-    box-sizing           : padding-box; */
+    /* background-blend-mode: multiply; */
+    /* background-color     : black; */
+    /* padding              : 20px;
+    box-sizing              : padding-box; */
+}
+
+.card.back {
+    border    : solid rgb(255, 0, 255) 0px;
+    padding   : 8px;
+    background: rgb(43, 29, 27);
+    background: linear-gradient(-45deg, rgba(43, 29, 27, 1) 0%, rgba(43, 29, 27, 1) 15%, rgba(105, 68, 51, 1) 15%, rgba(105, 68, 51, 1) 30%, rgba(255, 133, 57, 1) 30%, rgba(255, 133, 57, 1) 45%, rgba(255, 187, 68, 1) 45%, rgba(255, 187, 68, 1) 60%, rgba(109, 167, 163, 1) 60%, rgba(109, 167, 163, 1) 60%);
+}
+
+.card.back.draw-pile {
+    filter: none;
+}
+
+#draw-pile {
+    transform : rotate(15deg);
+    filter    : brightness(100%) drop-shadow(0px 6px 5px rgb(31, 31, 31, 0.04));
+    transition: all 0.15s ease;
+}
+
+#draw-pile-container {
+    filter: brightness(100%) drop-shadow(0px 1px rgb(224, 217, 213)) drop-shadow(0px 3px rgb(155, 145, 139)) drop-shadow(0px 3px rgb(128, 117, 111)) drop-shadow(0px 3px rgb(85, 76, 71));
+    /* drop-shadow(0px 2px rgb(68, 45, 34)) drop-shadow(0px 2px rgb(105, 68, 51)) drop-shadow(0px 2px rgb(68, 45, 34)) drop-shadow(0px 2px rgb(105, 68, 51)) drop-shadow(0px 2px rgb(68, 45, 34)) drop-shadow(0 0.2rem 0.15rem rgba(0, 0, 0, 0.6)); */
+    margin: auto;
+}
+
+#draw-pile:hover {
+    filter: brightness(100%) drop-shadow(0px 6px 5px rgb(31, 31, 31, 0.1));
+}
+
+#draw-pile:active {
+    filter: brightness(85%) drop-shadow(0px 6px 5px rgb(31, 31, 31, 0.1));
 }
 
 .playable:hover {
@@ -68,14 +106,15 @@
 }
 
 .card-inner {
-    padding-left    : 10px;
-    font-size  : 40px;
-    font-family: 'Lora', serif;
-    color      : white;
-    text-shadow: -3px -1px 0 #000,
-        1px -1px 0 #000,
-        -1px 1px 0 #000,
-        1px 1px 0 #000;
+    padding-left: 10px;
+    font-size   : 35px;
+    font-family : 'Lora', serif;
+    color       : rgb(255, 248, 209);
+    text-shadow : -3px -1px 0 rgb(43, 29, 27),
+        1px -1px 0 rgb(43, 29, 27),
+        -1px 1px 0 rgb(43, 29, 27),
+        1px 1px 0 rgb(43, 29, 27);
+    /* text-shadow: -3px -1.5px 0 rgb(43, 29, 27); */
     user-select: none;
 }
 
@@ -88,18 +127,37 @@
     transform      : translate(0, 25px);
 }
 
+#center-container {
+    display        : flex;
+    flex-direction : row;
+    margin         : auto;
+    gap            : 20vw;
+    align-items    : center;
+    justify-content: center;
+}
+
 #last-played-card-container {
     margin: auto;
+    width : 100px;
+    height: 150px;
+}
+
+#end-turn-button {
+    user-select: none;
+    cursor: pointer;
 }
 
 body {
     /* background       : rgb(255, 255, 255); */
-    background             : radial-gradient(circle, rgb(243, 243, 243) 0%, rgb(180, 180, 180) 100%);
-    display                : flex;
-    flex-direction         : column;
-    height                 : 100vh;
-    margin                 : 0;
-    overflow               : hidden;
-    font-size              : 2vh;
-    /* cursor              : url(cursor.png), pointer; */
+    background                : radial-gradient(circle, rgb(243, 243, 243) 0%, rgb(180, 180, 180) 100%);
+    /* background-color       : rgb(243, 239, 207); */
+    display                   : flex;
+    flex-direction            : column;
+    justify-content           : center;
+    align-items               : center;
+    height                    : 100vh;
+    margin                    : 0;
+    overflow                  : hidden;
+    font-size                 : 2vh;
+    /* cursor                 : url(cursor.png), pointer; */
 }

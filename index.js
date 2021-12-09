@@ -6,6 +6,7 @@ var path = require('path');
 var socketIO = require('socket.io');
 var assert = require('assert');
 const { setFlagsFromString } = require('v8');
+const e = require('cors');
 
 var app = express();
 var server = http.Server(app);
@@ -33,10 +34,6 @@ server.listen(port, function () {
     console.log('Starting server on port ' + port);
 });
 
-function getRandomInt(max) {
-    return Math.floor(Math.random() * max);
-}
-
 
 // helper functions
 function randomString(characters, length) {
@@ -47,6 +44,11 @@ function randomString(characters, length) {
     return result;
 }
 
+function randomCharacter(characters) {
+    // replace with more efficient implementation later if necessary
+    return randomString(characters, 1);
+}
+
 function generateRoomCode() {
     return randomString('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4);
 }
@@ -55,18 +57,30 @@ function generatePlayerID() {
     return randomString('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890', 20);
 }
 
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+}
+
 class Card {
+    static numbers = '0112233445566778899zzrr++#c';
+
     constructor() { }
 
     init_random() {
-        this.number = getRandomInt(10);
-        this.color = getRandomInt(4);
+        // z = skip, r = reverse, + = +2, # = +4, c = change color
+        this.number = randomCharacter(Card.numbers);
+        if ('#c'.includes(this.number))
+            this.color = 4;
+        else
+            this.color = getRandomInt(4);
     }
 }
 
 function compareCards(a, b) {
-    if (a.number != b.number) {
-        return a.number - b.number;
+    an = Card.numbers.indexOf(a.number);
+    bn = Card.numbers.indexOf(b.number);
+    if (an != bn) {
+        return an - bn;
     }
     else if (a.color != b.color) {
         return a.color - b.color;
@@ -82,6 +96,10 @@ class Player {
         this.cards = [];
     }
 
+    sortCards() {
+        this.cards.sort(compareCards);
+    }
+
     deal_random(count) {
         this.cards.length = 0;
 
@@ -89,8 +107,6 @@ class Player {
             this.cards[i] = new Card();
             this.cards[i].init_random();
         }
-
-        this.cards.sort(compareCards);
     }
 
     playCard(num) {
@@ -113,6 +129,11 @@ function cardsCompatible(a, b) {
         || b.color == 4;
 }
 
+function cardsStrictlyCompatible(a, b) {
+    return a.number == b.number
+        || ('+#'.includes(a.number) && '+#'.includes(b.number));
+}
+
 class Game {
     constructor(roomCode) {
         this.roomCode = roomCode;
@@ -121,8 +142,17 @@ class Game {
         this.starting_card_number = 1;
 
         this.lastPlayed = new Card();
-        this.lastPlayed.color = 4;
+        this.lastPlayed.init_random();
         this.playedCardsCount = 0;
+
+        this.whoseTurn = undefined;
+        this.turnDirection = 1;
+        this.playerDidSomethingThisTurn = false;
+        this.cardsPlayedThisTurn = 0;
+        this.currentPlayerNeedsToDraw = 0;
+        this.nextPlayerNeedsToDraw = 0;
+        this.currentPlayerNeedsToSkip = false;
+        this.nextPlayerNeedsToSkip = false;
 
         this.timeCreated = Date.now();      // in milliseconds
     }
@@ -131,27 +161,144 @@ class Game {
         this.whoseTurn = 0;
     }
 
+    // ============ turn actions ================
+    currentPlayerDrawCards(count) {
+        // bit hacky, but probably not _too_ inefficient lol
+        for (let i = 0; i < count; i++) {
+            let card = new Card();
+            card.init_random();
+            this.currentPlayer().cards.push(card);
+        }
+        this.currentPlayer().sortCards();
+    }
+
     endTurn() {
-        this.whoseTurn++;
+        if (this.currentPlayerNeedsToDraw > 0) {
+            this.currentPlayerDrawCards(this.currentPlayerNeedsToDraw);
+            this.playerDidSomethingThisTurn = true;
+        }
+
+        if (!this.playerDidSomethingThisTurn)
+            this.currentPlayerDrawCards(1);
+
+        // find next player according to the turn direction
+        this.whoseTurn += this.turnDirection;
         if (this.whoseTurn >= this.playerIDs.length)
             this.whoseTurn = 0;
+        else if (this.whoseTurn < 0)
+            this.whoseTurn = this.playerIDs.length - 1;
+
+        // prepare state for next turn
+        this.currentPlayerNeedsToDraw = this.nextPlayerNeedsToDraw;
+        this.nextPlayerNeedsToDraw = 0;
+        this.cardsPlayedThisTurn = 0;
+        this.playerDidSomethingThisTurn = false;
+    }
+
+    currentPlayerNoMoreOptions() {
+        // end turn if no action can be done
+        let canPlayAtLeastOneCard = false;
+        for (const cardInHand of this.currentPlayer().cards) {
+            if (this.cardsPlayedThisTurn == 0)
+                canPlayAtLeastOneCard = canPlayAtLeastOneCard || cardsCompatible(this.lastPlayed, cardInHand);
+            else
+                canPlayAtLeastOneCard = canPlayAtLeastOneCard || cardsStrictlyCompatible(this.lastPlayed, cardInHand);
+        }
+        return !canPlayAtLeastOneCard && !this.currentPlayerNeedsToDraw && this.playerDidSomethingThisTurn;
+    }
+
+    currentPlayerPlaysCard(playedCard) {
+        this.cardsPlayedThisTurn++;
+        this.lastPlayed = playedCard;
+        this.playedCardsCount++;
+        this.playerDidSomethingThisTurn = true;
+
+        if (this.currentPlayerNoMoreOptions())
+            this.endTurn();
     }
 
     playTurn(player_id, turn) {
-        console.log(player_id, turn, this.lastPlayed.color);
-
-        if (this.playerIDs[this.whoseTurn] !== player_id)
+        // it's not ur turn u butt
+        if (player_id !== this.idOfCurrentPlayer())
             return;
 
-        if (turn['type'] == 'p') {
+        // draw card(s)
+        if (turn['type'] == 'd') {
+            if (this.currentPlayerNeedsToDraw > 0) {
+                this.currentPlayerDrawCards(this.currentPlayerNeedsToDraw);
+                this.playerDidSomethingThisTurn = true;
+                this.currentPlayerNeedsToDraw = 0;
+            }
+            else {
+                if (this.cardsPlayedThisTurn == 0)
+                    this.endTurn();
+            }
+        }
+
+        // ! issues
+        // * can still draw card after playing a card
+        // * can't draw card after playing a card, but drawing still ends turn
+        // turn should end when no action can be done
+        // should be able to play card immediately after drawing if compatible
+        // ? draws 1 extra when end turn, ok when from pile
+        // draw cards dont stack
+        // * can still play cards when have to draw -> they disappear
+
+        // play card(s)
+        else if (turn['type'] == 'p') {
             let cardToPlay = this.players.get(player_id).cards[turn['card']];
 
-            if (cardsCompatible(cardToPlay, this.lastPlayed)) {
+            let canPlayFirstCard =
+                this.cardsPlayedThisTurn == 0
+                && cardsCompatible(cardToPlay, this.lastPlayed)
+                && this.currentPlayerNeedsToDraw == 0
+
+            let canPlaySubsequentCard =
+                this.cardsPlayedThisTurn >= 0
+                && cardsStrictlyCompatible(cardToPlay, this.lastPlayed)
+                && this.currentPlayerNeedsToDraw == 0
+
+            if (canPlayFirstCard || canPlaySubsequentCard) {
                 let playedCard = this.players.get(player_id).playCard(turn['card'], this);
-                this.lastPlayed = playedCard;
-                this.playedCardsCount++;
-                this.endTurn();
+
+                // player has to play a drawing card or draw some cards
+                if (this.currentPlayerNeedsToDraw > 0) {
+                    if (playedCard.number == '+') {
+                        this.nextPlayerNeedsToDraw = this.currentPlayerNeedsToDraw + 2;
+                        this.currentPlayerNeedsToDraw = 0;
+                        this.currentPlayerPlaysCard(playedCard);
+                    }
+                    else if (playedCard.number == '#') {
+                        this.nextPlayerNeedsToDraw = this.currentPlayerNeedsToDraw + 4;
+                        this.currentPlayerNeedsToDraw = 0;
+                        this.currentPlayerPlaysCard(playedCard);
+                    }
+                }
+
+                // no special actions are active, player can play any card
+                else {
+                    // drawing cards
+                    if (playedCard.number == '+') {
+                        this.nextPlayerNeedsToDraw = this.currentPlayerNeedsToDraw + 2;
+                        this.currentPlayerNeedsToDraw = 0;
+                        this.currentPlayerPlaysCard(playedCard);
+                    }
+                    else if (playedCard.number == '#') {
+                        this.nextPlayerNeedsToDraw = this.currentPlayerNeedsToDraw + 4;
+                        this.currentPlayerNeedsToDraw = 0;
+                        this.currentPlayerPlaysCard(playedCard);
+                    }
+                    // no special card
+                    else {
+                        this.currentPlayerPlaysCard(playedCard);
+                    }
+                }
             }
+        }
+
+        // end turn
+        else if (turn['type'] == 'e') {
+            this.endTurn();
         }
 
         sendStateAll(this.roomCode);
@@ -177,6 +324,15 @@ class Game {
             if (!player.afk)
                 count++;
         return count;
+    }
+
+    // player whose turn it is
+    idOfCurrentPlayer() {
+        return this.playerIDs[this.whoseTurn];
+    }
+
+    currentPlayer() {
+        return this.players.get(this.playerIDs[this.whoseTurn]);
     }
 }
 
@@ -308,7 +464,7 @@ io.on('connection', (socket) => {
                 'roomCode': roomCode
             });
 
-            sendState(roomCode, player_id);
+            sendStateAll(roomCode);
 
             sessionToRoom.set(session_id, roomCode);
         }
@@ -330,7 +486,6 @@ io.on('connection', (socket) => {
         let player_id = data['player_id'];
         let roomCode = data['roomCode'];
         let move = data['move'];
-        let cardClicked = move['card'];
 
         let game = games.get(roomCode);
 

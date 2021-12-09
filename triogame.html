@@ -28,26 +28,37 @@
 
     <div id='player-list-container'>
         <div class='player-list-item'>
-            <div class='player_id'>hello</div>
+            <div class='player_id'>if u can read this</div>
             <div class='card_count'>5 cards</div>
             <div class='turn'>thinking...</div>
         </div>
         <div class='player-list-item'>
-            <div class='player_id'>hello</div>
+            <div class='player_id'>something went wrong</div>
             <div class='card_count'>5 cards</div>
             <div class='turn'>thinking...</div>
         </div>
     </div>
 
-    <div id='last-played-card-container'>
+    <div id='center-container'>
+        <div id='last-played-card-container'></div>
+
+        <div id='draw-pile-container'>
+            <div id='draw-pile' onclick="drawPileClick()">
+                <div class="card back draw-pile" style="background-color: rgb(255, 133, 57);">
+                    <div class="card-inner"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <div id='end-turn-button' onclick='endTurn();'>end turn</div>
+
     <div id='card-container'>
-        <div class="card" id="clickme" style="background-color: deepskyblue;">
+        <div class="card" style="background-color: deepskyblue;">
             <div class="card-inner">🌱</div>
         </div>
 
-        <div class="card" id="clickme" style="background-color: rgb(62, 212, 48);">
+        <div class="card" style="background-color: rgb(62, 212, 48);">
             <div class="card-inner">🌱</div>
         </div>
     </div>
@@ -74,10 +85,10 @@
         var player_id = undefined;
         var name;
 
-        document.getElementById("clickme").addEventListener('click', function (e) {
-            e.preventDefault();
-            socket.emit('click', { id: socket.id, cardClicked: 0 });
-        });
+        // document.getElementById("clickme").addEventListener('click', function (e) {
+        //     e.preventDefault();
+        //     socket.emit('click', { id: socket.id, cardClicked: 0 });
+        // });
 
         class Card {
             constructor(number, color) {
@@ -101,7 +112,7 @@
         var cards = [];
         var lastPlayed = new Card(-1, 4);
         var playersState = new Map();
-        var playedCardsCount = 0;
+        var playedCardsCount = -1;
 
         // network
 
@@ -203,6 +214,8 @@
         function renderLastCard() {
             // random rotation of last played card
             var lastSpread = 50;
+            // var x_spread = 0;
+            // var y_spread = 0;
             var x_spread = 60;
             var y_spread = 60;
 
@@ -264,6 +277,26 @@
             }
 
             oldPlayerListContainer.replaceWith(newPlayerListContainer);
+        }
+
+        function drawPileClick() {
+            socket.emit('click', {
+                'player_id': player_id,
+                'roomCode': roomCode,
+                'move': {
+                    'type': 'd'
+                }
+            });
+        }
+
+        function endTurn() {
+            socket.emit('click', {
+                'player_id': player_id,
+                'roomCode': roomCode,
+                'move': {
+                    'type': 'e'
+                }
+            });
         }
 
         // on page load, wait for socket to be established and then join
