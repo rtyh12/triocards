@@ -44,8 +44,8 @@ function randomString(characters, length) {
     return result;
 }
 
+// replace with more efficient implementation later if necessary
 function randomCharacter(characters) {
-    // replace with more efficient implementation later if necessary
     return randomString(characters, 1);
 }
 
@@ -118,6 +118,8 @@ class Player {
             this.cards[i] = new Card();
             this.cards[i].init_random();
         }
+
+        this.sortCards();
     }
 
     playCard(num) {
@@ -150,7 +152,7 @@ class Game {
         this.roomCode = roomCode;
 
         this.players = new Map;
-        this.starting_card_number = 1;
+        this.starting_card_number = 8;
 
         this.lastPlayed = new Card();
         this.lastPlayed.init_random();
@@ -160,6 +162,7 @@ class Game {
         this.turnDirection = 1;
         this.playerDidSomethingThisTurn = false;
         this.cardsPlayedThisTurn = 0;
+        this.playerDrewOneCardThisTurn = false;
         this.needToDraw = 0;
         this.nthPlayerNeedsToDraw = 0;
         this.currentPlayerNeedsToSkip = false;
@@ -203,11 +206,11 @@ class Game {
         // prepare state for next turn
         this.nthPlayerNeedsToDraw = Math.max(this.nthPlayerNeedsToDraw - 1, 0);
         this.cardsPlayedThisTurn = 0;
+        this.playerDrewOneCardThisTurn = false;
         this.playerDidSomethingThisTurn = false;
     }
 
     currentPlayerNoMoreOptions() {
-        // end turn if no action can be done
         let canPlayAtLeastOneCard = false;
         for (const cardInHand of this.currentPlayer().cards) {
             if (this.cardsPlayedThisTurn == 0)
@@ -216,8 +219,8 @@ class Game {
                 canPlayAtLeastOneCard = canPlayAtLeastOneCard || cardsStrictlyCompatible(this.lastPlayed, cardInHand);
         }
         return !canPlayAtLeastOneCard
-            && !(this.needToDraw > 0 && this.nthPlayerNeedsToDraw == 0)     // don't need to draw
-            && this.playerDidSomethingThisTurn;                             // have to draw manually, if only option
+            && !(this.needToDraw > 0 && this.nthPlayerNeedsToDraw == 0)     // don't need to draw from draw cards
+            && this.playerDidSomethingThisTurn;                             // you have to draw 1 card manually, if no other option
     }
 
     currentPlayerPlaysCard(playedCard) {
@@ -249,21 +252,15 @@ class Game {
                 this.playerDidSomethingThisTurn = true;
                 this.needToDraw = 0;
             }
-            // no possible action, draw 1 card and end turn
+            // no possible action, draw 1 card
             else {
-                if (this.cardsPlayedThisTurn == 0)
-                    this.endTurn();
+                if (!this.playerDrewOneCardThisTurn) {
+                    this.currentPlayerDrawCards(1);
+                    this.playerDrewOneCardThisTurn = true;
+                    this.playerDidSomethingThisTurn = true;
+                }
             }
         }
-
-        // ! issues
-        // * can still draw card after playing a card
-        // * can't draw card after playing a card, but drawing still ends turn
-        // * turn should end when no action can be done
-        // should be able to play card immediately after drawing if compatible
-        // * draws 1 extra when end turn, ok when from pile
-        // * draw cards dont stack
-        // * can still play cards when have to draw -> they disappear
 
         // play card(s)
         else if (turn['type'] == 'p') {
@@ -281,7 +278,12 @@ class Game {
                 && cardsStrictlyCompatible(cardToPlay, this.lastPlayed)
                 && (this.needToDraw == 0 || this.nthPlayerNeedsToDraw != 0)
 
-            if (canPlayFirstCard || canPlaySubsequentCard) {
+            // can 'pass on' having to draw by stacking another drawing card
+            let canStackDrawingCard =
+                cardsStrictlyCompatible(cardToPlay, this.lastPlayed)
+                && (this.needToDraw > 0 && this.nthPlayerNeedsToDraw == 0)
+
+            if (canPlayFirstCard || canPlaySubsequentCard || canStackDrawingCard) {
                 let playedCard = this.players.get(player_id).playCard(turn['card'], this);
 
                 // player has to draw, but can pass it on by playing a drawing card
@@ -304,10 +306,13 @@ class Game {
             }
         }
 
-        // end turn
-        else if (turn['type'] == 'e') {
+        // player wants to end their turn
+        else if (turn['type'] == 'e')
             this.endTurn();
-        }
+
+        // end turn automatically if player did something already and has no more options
+        if (this.currentPlayerNoMoreOptions())
+            this.endTurn();
 
         sendStateAll(this.roomCode);
     }
