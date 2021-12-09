@@ -143,8 +143,7 @@ function cardsCompatible(a, b) {
 }
 
 function cardsStrictlyCompatible(a, b) {
-    return a.number == b.number
-        || ('+#'.includes(a.number) && '+#'.includes(b.number));
+    return a.number == b.number;
 }
 
 class Game {
