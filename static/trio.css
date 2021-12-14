@@ -142,6 +142,7 @@ body.trio {
     --trio-yellow            : rgb(255, 187, 68);
     --trio-cream             : rgb(255, 248, 209);
     --trio-cream-darker      : rgb(233, 198, 123);
+    --trio-pink              : rgb(152, 123, 233);
     /* --trio-cream-darker   : rgb(136, 47, 136); */
     /* background            : radial-gradient(ellipse at right, rgb(46, 51, 50) 0%, var(--trio-black) 100%); */
     background               : rgb(43, 29, 27);

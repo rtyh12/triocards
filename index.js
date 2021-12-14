@@ -61,11 +61,14 @@ function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
 
+// ========= CARDS =========
+
 class Card {
-    static numbers = '0112233445566778899zzrr++#c';
+    // order controls sort order, frequency controls probability
+    static numbers = '0112233445566778899zzrrc++#%';
 
     static isDrawingCard(card) {
-        return '+#'.includes(card.number)
+        return '+#%'.includes(card.number)
     }
 
     static getDrawingCardValue(card) {
@@ -73,6 +76,8 @@ class Card {
             return 2
         else if (card.number == '#')
             return 4
+        else if (card.number == '%')
+            return 8
     }
 
     constructor() { }
@@ -82,6 +87,8 @@ class Card {
         this.number = randomCharacter(Card.numbers);
         if ('#c'.includes(this.number))
             this.color = 4;
+        else if ('%'.includes(this.number))
+            this.color = 5;
         else
             this.color = getRandomInt(4);
     }
@@ -100,6 +107,30 @@ function compareCards(a, b) {
         return 0;
     }
 }
+
+// a placed over b not in a stack
+function cardsCompatible(a, b) {
+    if (a.number == '%')
+        return false;
+    if (b.number == '%')
+        return true;
+
+    return a.color == b.color
+        || a.number == b.number
+        || a.color == 4
+        || b.color == 4;
+}
+
+// a placed over b in a stack
+function cardsStrictlyCompatible(a, b) {
+    if (a.color == 5) {
+        return b.number == '#' || b.number == '%';
+    }
+    return a.number == b.number
+        || (a.number == '#' && b.number == '+');
+}
+
+// ========= PLAYERS =========
 
 class Player {
     constructor() {
@@ -135,16 +166,7 @@ class Player {
     }
 }
 
-function cardsCompatible(a, b) {
-    return a.color == b.color
-        || a.number == b.number
-        || a.color == 4
-        || b.color == 4;
-}
-
-function cardsStrictlyCompatible(a, b) {
-    return a.number == b.number;
-}
+// ========= GAMES =========
 
 class Game {
     constructor(roomCode) {
@@ -174,7 +196,8 @@ class Game {
         this.whoseTurn = 0;
     }
 
-    // ============ turn actions ================
+    // Turn actions
+
     currentPlayerDrawCards(count) {
         // bit hacky, but probably not _too_ inefficient lol
         for (let i = 0; i < count; i++) {
@@ -213,9 +236,9 @@ class Game {
         let canPlayAtLeastOneCard = false;
         for (const cardInHand of this.currentPlayer().cards) {
             if (this.cardsPlayedThisTurn == 0)
-                canPlayAtLeastOneCard = canPlayAtLeastOneCard || cardsCompatible(this.lastPlayed, cardInHand);
+                canPlayAtLeastOneCard = canPlayAtLeastOneCard || cardsCompatible(cardInHand, this.lastPlayed);
             else
-                canPlayAtLeastOneCard = canPlayAtLeastOneCard || cardsStrictlyCompatible(this.lastPlayed, cardInHand);
+                canPlayAtLeastOneCard = canPlayAtLeastOneCard || cardsStrictlyCompatible(cardInHand, this.lastPlayed);
         }
         return !canPlayAtLeastOneCard
             && !(this.needToDraw > 0 && this.nthPlayerNeedsToDraw == 0)     // don't need to draw from draw cards
@@ -273,7 +296,7 @@ class Game {
 
             // subsequent cards need to be strictly compatible (same number, maybe with exceptions)
             let canPlaySubsequentCard =
-                this.cardsPlayedThisTurn >= 0
+                this.cardsPlayedThisTurn > 0
                 && cardsStrictlyCompatible(cardToPlay, this.lastPlayed)
                 && (this.needToDraw == 0 || this.nthPlayerNeedsToDraw != 0)
 
@@ -315,6 +338,8 @@ class Game {
 
         sendStateAll(this.roomCode);
     }
+
+    // Game utilities
 
     getAge() {
         return Date.now() - this.timeCreated;
